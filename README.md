@@ -118,7 +118,7 @@ placement_ai/
 Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/placement-intelligence.git
+git clone https://github.com/devrana2575/placement-intelligence.git
 ```
 
 Move into the project
