@@ -1,0 +1,130 @@
+[
+  {
+    "id": "role-software-developer",
+    "name": "Software Developer",
+    "slug": "software-developer",
+    "family": "Software Development",
+    "description": "Builds and maintains applications in general-purpose languages. Strong CS fundamentals and software engineering practice.",
+    "competencyIds": [
+      "comp-sw-cs-fundamentals",
+      "comp-sw-languages",
+      "comp-sw-engineering",
+      "comp-sw-databases"
+    ],
+    "isActive": true
+  },
+  {
+    "id": "role-frontend-developer",
+    "name": "Frontend Developer",
+    "slug": "frontend-developer",
+    "family": "Software Development",
+    "description": "Builds responsive, accessible user interfaces using modern web frameworks.",
+    "competencyIds": ["comp-fe-core-web", "comp-fe-frameworks", "comp-fe-engineering"],
+    "isActive": true
+  },
+  {
+    "id": "role-backend-developer",
+    "name": "Backend Developer",
+    "slug": "backend-developer",
+    "family": "Software Development",
+    "description": "Designs and builds server-side logic, APIs, and data layers.",
+    "competencyIds": [
+      "comp-be-apis",
+      "comp-be-systems",
+      "comp-be-databases",
+      "comp-be-engineering",
+      "comp-sw-cs-fundamentals"
+    ],
+    "isActive": true
+  },
+  {
+    "id": "role-fullstack-developer",
+    "name": "Full-Stack Developer",
+    "slug": "fullstack-developer",
+    "family": "Software Development",
+    "description": "Builds features end to end across frontend and backend.",
+    "competencyIds": ["comp-fe-core-web", "comp-fe-frameworks", "comp-be-apis", "comp-be-databases", "comp-be-engineering"],
+    "isActive": true
+  },
+  {
+    "id": "role-data-analyst",
+    "name": "Data Analyst",
+    "slug": "data-analyst",
+    "family": "Data & Analytics",
+    "description": "Cleans, queries, analyzes and visualizes data to support decisions.",
+    "competencyIds": ["comp-da-sql", "comp-da-data-tools", "comp-da-stats", "comp-da-viz", "comp-da-business"],
+    "isActive": true
+  },
+  {
+    "id": "role-data-scientist",
+    "name": "Data Scientist",
+    "slug": "data-scientist",
+    "family": "Data & Analytics",
+    "description": "Applies statistics, ML, and data analysis to extract insight and build predictive models.",
+    "competencyIds": ["comp-ds-stats", "comp-ds-ml", "comp-ds-data-tools", "comp-ds-sql", "comp-ds-viz", "comp-ds-applied-ml"],
+    "isActive": true
+  },
+  {
+    "id": "role-ml-engineer",
+    "name": "ML Engineer",
+    "slug": "ml-engineer",
+    "family": "Data & Analytics",
+    "description": "Operationalizes machine learning models into production systems.",
+    "competencyIds": ["comp-mle-programming", "comp-mle-ml", "comp-mle-mlops", "comp-mle-data-eng", "comp-mle-cloud"],
+    "isActive": true
+  },
+  {
+    "id": "role-data-engineer",
+    "name": "Data Engineer",
+    "slug": "data-engineer",
+    "family": "Data & Analytics",
+    "description": "Builds data pipelines, warehouses, and processing infrastructure.",
+    "competencyIds": ["comp-de-sql", "comp-de-processing", "comp-de-etl", "comp-de-warehousing", "comp-de-scripting", "comp-de-cloud"],
+    "isActive": true
+  },
+  {
+    "id": "role-devops-engineer",
+    "name": "DevOps Engineer",
+    "slug": "devops-engineer",
+    "family": "Cloud & Infrastructure",
+    "description": "Automates infrastructure, builds CI/CD, and operates reliable systems.",
+    "competencyIds": ["comp-do-infra", "comp-do-cloud", "comp-do-cicd", "comp-do-monitoring", "comp-do-scripting"],
+    "isActive": true
+  },
+  {
+    "id": "role-cloud-engineer",
+    "name": "Cloud Engineer",
+    "slug": "cloud-engineer",
+    "family": "Cloud & Infrastructure",
+    "description": "Designs and operates cloud infrastructure and architecture.",
+    "competencyIds": ["comp-ce-platforms", "comp-ce-iac", "comp-ce-devops", "comp-ce-databases"],
+    "isActive": true
+  },
+  {
+    "id": "role-qa-automation-engineer",
+    "name": "QA Automation Engineer",
+    "slug": "qa-automation-engineer",
+    "family": "Software Development",
+    "description": "Designs automated test suites and quality strategies.",
+    "competencyIds": ["comp-qa-automation", "comp-qa-testing", "comp-qa-programming", "comp-qa-tools"],
+    "isActive": true
+  },
+  {
+    "id": "role-business-analyst",
+    "name": "Business Analyst",
+    "slug": "business-analyst",
+    "family": "Business & Product",
+    "description": "Bridges business needs and technical delivery through requirements and analysis.",
+    "competencyIds": ["comp-ba-requirements", "comp-ba-data", "comp-ba-communication", "comp-ba-process"],
+    "isActive": true
+  },
+  {
+    "id": "role-product-analyst",
+    "name": "Product Analyst",
+    "slug": "product-analyst",
+    "family": "Business & Product",
+    "description": "Uses data to evaluate product performance and inform product decisions.",
+    "competencyIds": ["comp-pa-metrics", "comp-pa-data", "comp-pa-viz", "comp-pa-thinking"],
+    "isActive": true
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "name": "@career/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Seed data and schema definitions for the Career Intelligence Platform.",
+  "main": "src/index.js",
+  "scripts": {
+    "seed": "node scripts/seed.js",
+    "lint": "eslint scripts src"
+  },
+  "dependencies": {
+    "@career/shared": "*",
+    "dotenv": "^16.4.7",
+    "mongodb": "^6.12.0"
+  }
+}

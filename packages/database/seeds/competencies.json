@@ -1,0 +1,434 @@
+[
+  {
+    "id": "comp-sw-cs-fundamentals",
+    "name": "CS Fundamentals",
+    "slug": "cs-fundamentals",
+    "description": "Core computer science knowledge including data structures, algorithms and object-oriented design.",
+    "roleId": "role-software-developer",
+    "skillIds": ["skill-dsa", "skill-oop", "skill-problem-solving"]
+  },
+  {
+    "id": "comp-sw-languages",
+    "name": "Programming Languages",
+    "slug": "programming-languages",
+    "description": "Practical working proficiency in common programming languages.",
+    "roleId": "role-software-developer",
+    "skillIds": ["skill-python", "skill-javascript", "skill-typescript", "skill-java", "skill-cpp", "skill-go"]
+  },
+  {
+    "id": "comp-sw-engineering",
+    "name": "Software Engineering Practices",
+    "slug": "software-engineering",
+    "description": "Version control, testing and delivery practices used by professional teams.",
+    "roleId": "role-software-developer",
+    "skillIds": ["skill-git", "skill-github", "skill-unit-testing", "skill-agile", "skill-software-testing"]
+  },
+  {
+    "id": "comp-sw-databases",
+    "name": "Databases & Data Modeling",
+    "slug": "databases",
+    "description": "Modeling, querying and optimizing relational and document databases.",
+    "roleId": "role-software-developer",
+    "skillIds": ["skill-sql", "skill-mongodb", "skill-postgresql", "skill-mysql", "skill-database-design", "skill-query-optimization"]
+  },
+  {
+    "id": "comp-fe-core-web",
+    "name": "Core Web Technologies",
+    "slug": "core-web",
+    "description": "Foundational web standards: markup, styling, scripting and accessibility.",
+    "roleId": "role-frontend-developer",
+    "skillIds": ["skill-html", "skill-css", "skill-javascript", "skill-typescript", "skill-web-fundamentals", "skill-responsive-design", "skill-accessibility"]
+  },
+  {
+    "id": "comp-fe-frameworks",
+    "name": "Frontend Frameworks",
+    "slug": "frontend-frameworks",
+    "description": "Component-driven UI development with modern frameworks and styling tools.",
+    "roleId": "role-frontend-developer",
+    "skillIds": ["skill-react", "skill-nextjs", "skill-vue", "skill-tailwind"]
+  },
+  {
+    "id": "comp-fe-engineering",
+    "name": "Frontend Engineering",
+    "slug": "frontend-engineering",
+    "description": "Testing, tooling and collaboration practices for frontend teams.",
+    "roleId": "role-frontend-developer",
+    "skillIds": ["skill-git", "skill-github", "skill-unit-testing", "skill-e2e-testing", "skill-agile"]
+  },
+  {
+    "id": "comp-be-apis",
+    "name": "API Development",
+    "slug": "api-development",
+    "description": "Designing, building and securing web APIs.",
+    "roleId": "role-backend-developer",
+    "skillIds": ["skill-rest-api", "skill-graphql", "skill-auth", "skill-api-design"]
+  },
+  {
+    "id": "comp-be-systems",
+    "name": "System Design",
+    "slug": "system-design",
+    "description": "Designing reliable, scalable server-side systems.",
+    "roleId": "role-backend-developer",
+    "skillIds": ["skill-system-design", "skill-microservices", "skill-message-queues", "skill-caching"]
+  },
+  {
+    "id": "comp-be-databases",
+    "name": "Databases & Storage",
+    "slug": "databases-storage",
+    "description": "Data persistence, modeling and querying for backend systems.",
+    "roleId": "role-backend-developer",
+    "skillIds": ["skill-sql", "skill-mongodb", "skill-postgresql", "skill-database-design", "skill-redis", "skill-query-optimization"]
+  },
+  {
+    "id": "comp-be-engineering",
+    "name": "Backend Engineering",
+    "slug": "backend-engineering",
+    "description": "Server-side programming, testing and delivery.",
+    "roleId": "role-backend-developer",
+    "skillIds": ["skill-python", "skill-nodejs", "skill-express", "skill-docker", "skill-git", "skill-unit-testing", "skill-integration-testing", "skill-ci-cd"]
+  },
+  {
+    "id": "comp-da-sql",
+    "name": "SQL & Data Querying",
+    "slug": "sql-querying",
+    "description": "Writing correct, well-structured SQL queries for analysis.",
+    "roleId": "role-data-analyst",
+    "skillIds": ["skill-sql", "skill-query-optimization"]
+  },
+  {
+    "id": "comp-da-data-tools",
+    "name": "Data Manipulation & Cleaning",
+    "slug": "data-manipulation",
+    "description": "Cleaning and reshaping data with scripting tools.",
+    "roleId": "role-data-analyst",
+    "skillIds": ["skill-python", "skill-pandas", "skill-numpy", "skill-r", "skill-data-cleaning", "skill-eda"]
+  },
+  {
+    "id": "comp-da-stats",
+    "name": "Statistics & Experimentation",
+    "slug": "statistics",
+    "description": "Descriptive and inferential statistics for data analysis.",
+    "roleId": "role-data-analyst",
+    "skillIds": ["skill-statistics", "skill-probability", "skill-ab-testing", "skill-experiment-design"]
+  },
+  {
+    "id": "comp-da-viz",
+    "name": "Data Visualization & Reporting",
+    "slug": "visualization",
+    "description": "Communicating findings through charts, dashboards and narrative.",
+    "roleId": "role-data-analyst",
+    "skillIds": ["skill-matplotlib", "skill-seaborn", "skill-tableau", "skill-power-bi", "skill-dashboarding", "skill-storytelling"]
+  },
+  {
+    "id": "comp-da-business",
+    "name": "Business Context & Communication",
+    "slug": "business-context",
+    "description": "Translating business questions into analysis and insights.",
+    "roleId": "role-data-analyst",
+    "skillIds": ["skill-requirements-analysis", "skill-stakeholder-communication", "skill-critical-thinking"]
+  },
+  {
+    "id": "comp-ds-stats",
+    "name": "Statistics & Probability",
+    "slug": "statistics-probability",
+    "description": "Mathematical foundations for modeling and inference.",
+    "roleId": "role-data-scientist",
+    "skillIds": ["skill-statistics", "skill-probability", "skill-linear-algebra", "skill-calculus"]
+  },
+  {
+    "id": "comp-ds-ml",
+    "name": "Machine Learning",
+    "slug": "machine-learning",
+    "description": "Building, evaluating and tuning machine learning models.",
+    "roleId": "role-data-scientist",
+    "skillIds": ["skill-ml-fundamentals", "skill-model-evaluation", "skill-feature-engineering", "skill-hyperparameter-tuning"]
+  },
+  {
+    "id": "comp-ds-data-tools",
+    "name": "Data Manipulation (Python)",
+    "slug": "python-data-tools",
+    "description": "Hands-on data analysis with the Python data stack.",
+    "roleId": "role-data-scientist",
+    "skillIds": ["skill-python", "skill-pandas", "skill-numpy", "skill-data-cleaning", "skill-eda"]
+  },
+  {
+    "id": "comp-ds-sql",
+    "name": "SQL for Analysis",
+    "slug": "sql-for-analysis",
+    "description": "Extracting and aggregating data from databases.",
+    "roleId": "role-data-scientist",
+    "skillIds": ["skill-sql"]
+  },
+  {
+    "id": "comp-ds-viz",
+    "name": "Data Visualization",
+    "slug": "data-visualization",
+    "description": "Presenting findings clearly and persuasively.",
+    "roleId": "role-data-scientist",
+    "skillIds": ["skill-matplotlib", "skill-seaborn", "skill-dashboarding"]
+  },
+  {
+    "id": "comp-ds-applied-ml",
+    "name": "Applied ML & Advanced Topics",
+    "slug": "applied-ml",
+    "description": "Modern applied areas: deep learning, NLP, and generative AI.",
+    "roleId": "role-data-scientist",
+    "skillIds": ["skill-scikit-learn", "skill-tensorflow", "skill-pytorch", "skill-deep-learning", "skill-nlp", "skill-generative-ai", "skill-rag"]
+  },
+  {
+    "id": "comp-mle-programming",
+    "name": "Programming for ML",
+    "slug": "programming-for-ml",
+    "description": "Production-quality Python and ML libraries.",
+    "roleId": "role-ml-engineer",
+    "skillIds": ["skill-python", "skill-scikit-learn", "skill-tensorflow", "skill-pytorch"]
+  },
+  {
+    "id": "comp-mle-ml",
+    "name": "ML Fundamentals",
+    "slug": "ml-fundamentals",
+    "description": "Modeling, evaluation and experimentation.",
+    "roleId": "role-ml-engineer",
+    "skillIds": ["skill-ml-fundamentals", "skill-feature-engineering", "skill-model-evaluation", "skill-hyperparameter-tuning"]
+  },
+  {
+    "id": "comp-mle-mlops",
+    "name": "MLOps & Serving",
+    "slug": "mlops",
+    "description": "Deploying, monitoring and operating models in production.",
+    "roleId": "role-ml-engineer",
+    "skillIds": ["skill-docker", "skill-kubernetes", "skill-ci-cd", "skill-fastapi", "skill-monitoring"]
+  },
+  {
+    "id": "comp-mle-data-eng",
+    "name": "Data Engineering for ML",
+    "slug": "data-engineering",
+    "description": "Building data pipelines for model training and inference.",
+    "roleId": "role-ml-engineer",
+    "skillIds": ["skill-sql", "skill-apache-spark", "skill-etl", "skill-airflow", "skill-kafka"]
+  },
+  {
+    "id": "comp-mle-cloud",
+    "name": "Cloud Platforms",
+    "slug": "cloud-platforms",
+    "description": "Deploying ML workloads on major cloud platforms.",
+    "roleId": "role-ml-engineer",
+    "skillIds": ["skill-aws", "skill-gcp", "skill-azure"]
+  },
+  {
+    "id": "comp-de-sql",
+    "name": "SQL & Relational Databases",
+    "slug": "sql-relational",
+    "description": "Querying and optimizing relational and document stores.",
+    "roleId": "role-data-engineer",
+    "skillIds": ["skill-sql", "skill-postgresql", "skill-mysql", "skill-mongodb", "skill-query-optimization"]
+  },
+  {
+    "id": "comp-de-processing",
+    "name": "Distributed Data Processing",
+    "slug": "distributed-processing",
+    "description": "Processing large datasets at scale.",
+    "roleId": "role-data-engineer",
+    "skillIds": ["skill-apache-spark", "skill-hadoop"]
+  },
+  {
+    "id": "comp-de-etl",
+    "name": "ETL & Orchestration",
+    "slug": "etl-orchestration",
+    "description": "Building and scheduling data pipelines.",
+    "roleId": "role-data-engineer",
+    "skillIds": ["skill-etl", "skill-airflow", "skill-kafka", "skill-data-cleaning"]
+  },
+  {
+    "id": "comp-de-warehousing",
+    "name": "Data Warehousing & Modeling",
+    "slug": "warehousing",
+    "description": "Designing analytical data models and warehouses.",
+    "roleId": "role-data-engineer",
+    "skillIds": ["skill-data-warehousing", "skill-data-modeling", "skill-snowflake", "skill-bigquery"]
+  },
+  {
+    "id": "comp-de-scripting",
+    "name": "Scripting & Automation",
+    "slug": "scripting",
+    "description": "Scripting languages for pipeline glue code.",
+    "roleId": "role-data-engineer",
+    "skillIds": ["skill-python", "skill-bash"]
+  },
+  {
+    "id": "comp-de-cloud",
+    "name": "Data Infrastructure on Cloud",
+    "slug": "cloud-infra",
+    "description": "Running data infrastructure on cloud platforms.",
+    "roleId": "role-data-engineer",
+    "skillIds": ["skill-aws", "skill-azure", "skill-gcp", "skill-docker"]
+  },
+  {
+    "id": "comp-do-infra",
+    "name": "Infrastructure & Containers",
+    "slug": "infrastructure",
+    "description": "Containerization, orchestration and infrastructure as code.",
+    "roleId": "role-devops-engineer",
+    "skillIds": ["skill-docker", "skill-kubernetes", "skill-infra-as-code", "skill-terraform"]
+  },
+  {
+    "id": "comp-do-cloud",
+    "name": "Cloud Platforms",
+    "slug": "cloud",
+    "description": "Operating workloads on major cloud providers.",
+    "roleId": "role-devops-engineer",
+    "skillIds": ["skill-aws", "skill-gcp", "skill-azure"]
+  },
+  {
+    "id": "comp-do-cicd",
+    "name": "CI/CD & Automation",
+    "slug": "ci-cd",
+    "description": "Automating build, test and deployment pipelines.",
+    "roleId": "role-devops-engineer",
+    "skillIds": ["skill-ci-cd", "skill-jenkins", "skill-github-actions", "skill-microservices"]
+  },
+  {
+    "id": "comp-do-monitoring",
+    "name": "Monitoring & Observability",
+    "slug": "monitoring",
+    "description": "Instrumenting systems to observe health and performance.",
+    "roleId": "role-devops-engineer",
+    "skillIds": ["skill-monitoring", "skill-prometheus", "skill-grafana", "skill-elasticsearch"]
+  },
+  {
+    "id": "comp-do-scripting",
+    "name": "Scripting & Automation",
+    "slug": "scripting",
+    "description": "Scripting for automation and incident response.",
+    "roleId": "role-devops-engineer",
+    "skillIds": ["skill-bash", "skill-python", "skill-git"]
+  },
+  {
+    "id": "comp-ce-platforms",
+    "name": "Cloud Platforms & Architecture",
+    "slug": "cloud-platforms",
+    "description": "Architecting solutions on cloud platforms.",
+    "roleId": "role-cloud-engineer",
+    "skillIds": ["skill-aws", "skill-azure", "skill-gcp", "skill-cloud-architecture"]
+  },
+  {
+    "id": "comp-ce-iac",
+    "name": "Infrastructure as Code",
+    "slug": "infra-as-code",
+    "description": "Defining and managing infrastructure declaratively.",
+    "roleId": "role-cloud-engineer",
+    "skillIds": ["skill-terraform", "skill-infra-as-code", "skill-docker", "skill-kubernetes"]
+  },
+  {
+    "id": "comp-ce-devops",
+    "name": "DevOps & Automation",
+    "slug": "devops",
+    "description": "Automating deployments and operations.",
+    "roleId": "role-cloud-engineer",
+    "skillIds": ["skill-ci-cd", "skill-jenkins", "skill-monitoring", "skill-bash"]
+  },
+  {
+    "id": "comp-ce-databases",
+    "name": "Managed Data Services",
+    "slug": "managed-databases",
+    "description": "Working with managed database offerings.",
+    "roleId": "role-cloud-engineer",
+    "skillIds": ["skill-sql", "skill-postgresql", "skill-mongodb", "skill-redis"]
+  },
+  {
+    "id": "comp-qa-automation",
+    "name": "Test Automation",
+    "slug": "test-automation",
+    "description": "Building automated test suites with modern frameworks.",
+    "roleId": "role-qa-automation-engineer",
+    "skillIds": ["skill-test-automation", "skill-selenium", "skill-playwright", "skill-cypress"]
+  },
+  {
+    "id": "comp-qa-testing",
+    "name": "Software Testing Concepts",
+    "slug": "testing-concepts",
+    "description": "Testing strategies across the software lifecycle.",
+    "roleId": "role-qa-automation-engineer",
+    "skillIds": ["skill-software-testing", "skill-unit-testing", "skill-integration-testing", "skill-e2e-testing"]
+  },
+  {
+    "id": "comp-qa-programming",
+    "name": "Programming for QA",
+    "slug": "programming",
+    "description": "Programming skills needed to build and maintain test suites.",
+    "roleId": "role-qa-automation-engineer",
+    "skillIds": ["skill-python", "skill-javascript", "skill-java"]
+  },
+  {
+    "id": "comp-qa-tools",
+    "name": "QA Tools & CI",
+    "slug": "qa-tools",
+    "description": "Performance testing, API testing and pipeline integration.",
+    "roleId": "role-qa-automation-engineer",
+    "skillIds": ["skill-jmeter", "skill-postman", "skill-git", "skill-ci-cd"]
+  },
+  {
+    "id": "comp-ba-requirements",
+    "name": "Requirements & Analysis",
+    "slug": "requirements-analysis",
+    "description": "Eliciting, documenting and validating requirements.",
+    "roleId": "role-business-analyst",
+    "skillIds": ["skill-requirements-analysis", "skill-agile", "skill-critical-thinking"]
+  },
+  {
+    "id": "comp-ba-data",
+    "name": "Data & Analysis",
+    "slug": "data-analysis",
+    "description": "Querying data and building reports to inform decisions.",
+    "roleId": "role-business-analyst",
+    "skillIds": ["skill-sql", "skill-python", "skill-pandas", "skill-dashboarding"]
+  },
+  {
+    "id": "comp-ba-communication",
+    "name": "Communication & Stakeholders",
+    "slug": "communication",
+    "description": "Communicating analysis and requirements effectively.",
+    "roleId": "role-business-analyst",
+    "skillIds": ["skill-stakeholder-communication", "skill-storytelling", "skill-problem-solving"]
+  },
+  {
+    "id": "comp-ba-process",
+    "name": "Business Process & Metrics",
+    "slug": "business-process",
+    "description": "Understanding process improvement and measurement.",
+    "roleId": "role-business-analyst",
+    "skillIds": ["skill-product-metrics", "skill-ab-testing", "skill-experiment-design"]
+  },
+  {
+    "id": "comp-pa-metrics",
+    "name": "Product Metrics & Experimentation",
+    "slug": "product-metrics",
+    "description": "Designing metrics and experiments to evaluate product changes.",
+    "roleId": "role-product-analyst",
+    "skillIds": ["skill-product-metrics", "skill-ab-testing", "skill-experiment-design"]
+  },
+  {
+    "id": "comp-pa-data",
+    "name": "Data Analysis",
+    "slug": "data-analysis",
+    "description": "Querying and analyzing product data.",
+    "roleId": "role-product-analyst",
+    "skillIds": ["skill-sql", "skill-python", "skill-pandas", "skill-statistics"]
+  },
+  {
+    "id": "comp-pa-viz",
+    "name": "Visualization & Communication",
+    "slug": "visualization",
+    "description": "Communicating product insights to stakeholders.",
+    "roleId": "role-product-analyst",
+    "skillIds": ["skill-dashboarding", "skill-storytelling", "skill-stakeholder-communication"]
+  },
+  {
+    "id": "comp-pa-thinking",
+    "name": "Product Thinking",
+    "slug": "product-thinking",
+    "description": "Framing analytical work around product impact.",
+    "roleId": "role-product-analyst",
+    "skillIds": ["skill-requirements-analysis", "skill-critical-thinking", "skill-problem-solving"]
+  }
+]

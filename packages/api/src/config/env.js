@@ -1,0 +1,42 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const requireEnv = (name, defaultValue) => {
+  const value = process.env[name];
+  if (value === undefined || value === '') {
+    if (defaultValue !== undefined) return defaultValue;
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+};
+
+const env = {
+  nodeEnv: requireEnv('NODE_ENV', 'development'),
+  appName: requireEnv('APP_NAME', 'Career Intelligence Platform'),
+  port: Number(requireEnv('API_PORT', '4000')),
+  publicUrl: requireEnv('API_PUBLIC_URL', 'http://localhost:4000'),
+  frontendUrl: requireEnv('FRONTEND_URL', 'http://localhost:5173'),
+  dataServiceUrl: requireEnv('DATA_SERVICE_URL', 'http://localhost:8000'),
+
+  mongoUri: requireEnv(
+    'MONGODB_URI',
+    'mongodb://localhost:27017/career_intelligence',
+  ),
+
+  jwtSecret: requireEnv('JWT_SECRET', 'dev-insecure-secret-change-me'),
+  jwtExpiresIn: requireEnv('JWT_EXPIRES_IN', '7d'),
+
+  rateLimitWindowMs: Number(requireEnv('RATE_LIMIT_WINDOW_MS', '900000')),
+  rateLimitMax: Number(requireEnv('RATE_LIMIT_MAX', '100')),
+
+  maxUploadSizeMb: Number(requireEnv('MAX_UPLOAD_SIZE_MB', '10')),
+  allowedUploadMimeTypes: requireEnv(
+    'ALLOWED_UPLOAD_MIME_TYPES',
+    'application/pdf,image/png,image/jpeg',
+  ).split(','),
+
+  logLevel: requireEnv('LOG_LEVEL', 'info'),
+};
+
+export default env;
