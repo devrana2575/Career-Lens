@@ -159,10 +159,25 @@ export default function AssessmentsPage() {
                       value={answers[q.id] ?? ''}
                       onChange={(e) => setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
                       rows={q.type === 'sql' ? 5 : 9}
-                      placeholder={q.type === 'sql' ? 'Write your SQL query here…' : 'Write your Python code here…'}
+                      placeholder={q.type === 'sql' ? 'Write your SQL query here…' : 'Write your answer here…'}
                       className="w-full rounded-md border border-slate-200 bg-slate-50 p-3 font-mono text-sm text-slate-800 outline-none focus:border-indigo-400 focus:bg-white"
                       spellCheck={false}
                     />
+                  )}
+                  {q.rubric.length > 0 && (
+                    <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Rubric — how this is graded
+                      </p>
+                      <ul className="space-y-1">
+                        {q.rubric.map((c) => (
+                          <li key={c.id} className="text-xs text-slate-600">
+                            <span className="font-medium text-slate-700">{c.label}</span> · {c.description} (
+                            {c.maxPoints}pt)
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                 </div>
               ))}
@@ -177,6 +192,40 @@ export default function AssessmentsPage() {
                   Cancel
                 </button>
               </div>
+            </CardContent>
+          </Card>
+        ) : result && result.attempt.status === 'pending_review' ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">
+                Submitted — awaiting review
+              </CardTitle>
+              <CardDescription>
+                {result.attempt.assessmentTitle}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-slate-600">
+                Your answers were submitted for a mentor to score against the published rubric. The score
+                will be recorded as evidence once the review is complete.
+              </p>
+              {result.questions.map((q, index) => {
+                const answer = result.attempt.answers.find((a) => a.questionId === q.id);
+                return (
+                  <div key={q.id} className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                    <p className="text-sm font-medium text-slate-800">
+                      <span className="mr-2 text-slate-400">{index + 1}.</span>
+                      {q.prompt}
+                    </p>
+                    <pre className="mt-2 max-h-40 overflow-auto rounded bg-slate-900 p-3 font-mono text-xs text-slate-100">
+                      {answer?.text ?? ''}
+                    </pre>
+                  </div>
+                );
+              })}
+              <Button onClick={() => setResult(null)} variant="secondary">
+                Back to assessments
+              </Button>
             </CardContent>
           </Card>
         ) : result ? (

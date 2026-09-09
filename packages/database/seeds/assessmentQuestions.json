@@ -497,5 +497,73 @@
         { "input": "Career\n", "expectedOutput": "CAREER\n" }
       ]
     }
+  },
+  {
+    "id": "assess-q-cs-1",
+    "assessmentId": "assess-python-case-study",
+    "skillId": "skill-python",
+    "type": "case_study",
+    "prompt": "Mini case: write (or pseudocode) a function `flatten(items)` that converts a nested list into a flat list. Explain your approach, edge cases (empty lists, deep nesting, non-list elements), and time/space complexity.",
+    "options": [],
+    "correctOptionId": null,
+    "explanation": "Reviewers grade against the rubric; solutions are not published.",
+    "difficulty": "intermediate",
+    "points": 4,
+    "orderIndex": 0,
+    "config": {},
+    "rubric": [
+      {
+        "id": "approach",
+        "label": "Approach & structure",
+        "description": "Correct recursive or iterative flattening design.",
+        "maxPoints": 2
+      },
+      {
+        "id": "correctness",
+        "label": "Correctness & edge cases",
+        "description": "Handles nesting depth, empty lists and non-list elements.",
+        "maxPoints": 1
+      },
+      {
+        "id": "clarity",
+        "label": "Communication",
+        "description": "Clear explanation of approach and complexity.",
+        "maxPoints": 1
+      }
+    ]
+  },
+  {
+    "id": "assess-q-cs-2",
+    "assessmentId": "assess-python-case-study",
+    "skillId": "skill-python",
+    "type": "case_study",
+    "prompt": "Data case: you have a table `activity(user_id, event_date, event_type)` and need to compute the user churn rate for the last 30 days (a user churns if they had no activity for 30+ consecutive days). Describe your methodology, sketch the SQL/Python you would use, and say how you would present this to leadership.",
+    "options": [],
+    "correctOptionId": null,
+    "explanation": "Reviewers grade against the rubric; solutions are not published.",
+    "difficulty": "advanced",
+    "points": 4,
+    "orderIndex": 1,
+    "config": {},
+    "rubric": [
+      {
+        "id": "approach",
+        "label": "Methodology",
+        "description": "Sound churn/customer-counting definition and time windowing.",
+        "maxPoints": 2
+      },
+      {
+        "id": "accuracy",
+        "label": "Query/logic accuracy",
+        "description": "Correct group-by / window logic in the sketched solution.",
+        "maxPoints": 1
+      },
+      {
+        "id": "insight",
+        "label": "Communicating insight",
+        "description": "Leadership-ready framing: metrics, caveats, next steps.",
+        "maxPoints": 1
+      }
+    ]
   }
 ]

@@ -18,12 +18,12 @@ let token;
 let otherToken;
 let instanceCounter = 0;
 
-async function makeUser(email, displayName = 'Assessment Tester') {
+async function makeUser(email, displayName = 'Assessment Tester', role = 'student') {
   const user = await registerUser({
     email,
     displayName,
     password: 'password123',
-    role: 'student',
+    role,
   });
   return signAccessToken(user);
 }
@@ -188,6 +188,136 @@ beforeEach(async () => {
   token = await makeUser(`assess+${instanceCounter}@example.com`);
   otherToken = await makeUser(`other-assess+${instanceCounter}@example.com`);
 });
+
+const RUBRIC_APPROACH = [
+  {
+    id: 'approach',
+    label: 'Approach & structure',
+    description: 'Correct design.',
+    maxPoints: 2,
+  },
+  {
+    id: 'correctness',
+    label: 'Correctness',
+    description: 'Edge cases handled.',
+    maxPoints: 1,
+  },
+  {
+    id: 'clarity',
+    label: 'Communication',
+    description: 'Clear explanation.',
+    maxPoints: 1,
+  },
+];
+
+const RUBRIC_DATA = [
+  {
+    id: 'approach',
+    label: 'Methodology',
+    description: 'Sound approach.',
+    maxPoints: 2,
+  },
+  {
+    id: 'accuracy',
+    label: 'Query/logic accuracy',
+    description: 'Correct logic.',
+    maxPoints: 1,
+  },
+  {
+    id: 'insight',
+    label: 'Communicating insight',
+    description: 'Leadership-ready framing.',
+    maxPoints: 1,
+  },
+];
+
+const CS_QUESTIONS = [
+  {
+    _id: 'assess-test-cs-q1',
+    assessmentId: 'assess-test-case',
+    skillId: 'skill-python',
+    type: 'case_study',
+    prompt: 'Explain how you would flatten a nested list in Python.',
+    correctOptionId: null,
+    explanation: 'Grade per rubric.',
+    difficulty: 'intermediate',
+    points: 4,
+    orderIndex: 0,
+    config: {},
+    rubric: RUBRIC_APPROACH,
+  },
+  {
+    _id: 'assess-test-cs-q2',
+    assessmentId: 'assess-test-case',
+    skillId: 'skill-python',
+    type: 'case_study',
+    prompt: 'How would you compute a 30-day churn rate?',
+    correctOptionId: null,
+    explanation: 'Grade per rubric.',
+    difficulty: 'advanced',
+    points: 4,
+    orderIndex: 1,
+    config: {},
+    rubric: RUBRIC_DATA,
+  },
+];
+
+async function seedCaseStudyAssessment() {
+  await Assessment.findOneAndUpdate(
+    { _id: 'assess-test-case' },
+    {
+      $setOnInsert: {
+        title: 'Python Case Study',
+        type: 'case_study',
+        skillId: 'skill-python',
+        timeLimitMinutes: 20,
+        isActive: true,
+      },
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+  await AssessmentQuestion.insertMany(
+    CS_QUESTIONS.map((q) => ({ ...q, assessmentId: 'assess-test-case' })),
+  );
+  return { assessmentId: 'assess-test-case' };
+}
+
+async function submitCaseStudy(attemptId, personToken = token) {
+  return request(app)
+    .post(`/api/assessments/attempts/${attemptId}/submit`)
+    .set('Authorization', `Bearer ${personToken}`)
+    .send({
+      answers: [
+        { questionId: 'assess-test-cs-q1', text: 'recursion...' },
+        { questionId: 'assess-test-cs-q2', text: 'cohort logic...' },
+      ],
+    });
+}
+
+function fullReview() {
+  return {
+    review: [
+      {
+        questionId: 'assess-test-cs-q1',
+        scores: [
+          { criterionId: 'approach', points: 1 },
+          { criterionId: 'correctness', points: 1 },
+          { criterionId: 'clarity', points: 1 },
+        ],
+        comment: 'Good structure, watch deep nesting.',
+      },
+      {
+        questionId: 'assess-test-cs-q2',
+        scores: [
+          { criterionId: 'approach', points: 2 },
+          { criterionId: 'accuracy', points: 0 },
+          { criterionId: 'insight', points: 1 },
+        ],
+        comment: 'Sound methodology.',
+      },
+    ],
+  };
+}
 
 describe('assessments API', () => {
   it('rejects unauthenticated requests', async () => {
@@ -489,5 +619,194 @@ describe('assessments API — sql/coding sandbox grading', () => {
         answers: [{ questionId: 'assess-test-sql-q1', text: 'SELECT name FROM employees' }],
       });
     expect(res.status).toBe(502);
+  });
+});
+
+describe('assessments API — rubric-graded case studies', () => {
+  it('starts a case study with the rubric visible but no answers', async () => {
+    const { assessmentId } = await seedCaseStudyAssessment();
+    const res = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(201);
+    expect(res.body.questions).toHaveLength(2);
+    expect(res.body.questions[0].rubric).toEqual(RUBRIC_APPROACH);
+    expect(res.body.questions[0]).not.toHaveProperty('config');
+    expect(res.body.questions[0]).not.toHaveProperty('correctOptionId');
+  });
+
+  it('submitting moves to pending_review and writes no evidence yet', async () => {
+    const { assessmentId } = await seedCaseStudyAssessment();
+    const started = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    const attemptId = started.body.attempt.id;
+
+    const res = await submitCaseStudy(attemptId);
+    expect(res.status).toBe(200);
+    expect(res.body.attempt.status).toBe('pending_review');
+    expect(res.body.attempt.percentScore).toBeNull();
+    expect(res.body.attempt.answers.every((a) => a.isCorrect === null)).toBe(true);
+
+    const graph = await request(app)
+      .get('/api/evidence/graph')
+      .set('Authorization', `Bearer ${token}`);
+    expect(graph.body.skillAssessments).toHaveLength(0);
+  });
+
+  it('lists pending attempts for a reviewer with the submission and rubric', async () => {
+    const mentorToken = await makeUser('mentor-review@example.com', 'Mentor', 'mentor');
+    const { assessmentId } = await seedCaseStudyAssessment();
+    const started = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    await submitCaseStudy(started.body.attempt.id);
+
+    const res = await request(app)
+      .get('/api/assessments/attempts/pending')
+      .set('Authorization', `Bearer ${mentorToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.attempts).toHaveLength(1);
+    const item = res.body.attempts[0];
+    expect(item.student.displayName).toBe('Assessment Tester');
+    expect(item.questions[0].rubric).toEqual(RUBRIC_APPROACH);
+    expect(item.questions[0].submission.text).toBe('recursion...');
+  });
+
+  it('blocks students and recruiters from reviewing', async () => {
+    const { assessmentId } = await seedCaseStudyAssessment();
+    const started = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    const attemptId = started.body.attempt.id;
+    await submitCaseStudy(attemptId);
+
+    const asStudent = await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/review`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(fullReview());
+    expect(asStudent.status).toBe(403);
+
+    const asOther = await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/review`)
+      .set('Authorization', `Bearer ${otherToken}`)
+      .send(fullReview());
+    expect(asOther.status).toBe(403);
+
+    const recruiterToken = await makeUser('recruiter@example.com', 'Recruiter', 'recruiter');
+    const asRecruiter = await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/review`)
+      .set('Authorization', `Bearer ${recruiterToken}`)
+      .send(fullReview());
+    expect(asRecruiter.status).toBe(403);
+  });
+
+  it('scores the attempt from a mentor review and writes reviewed evidence', async () => {
+    const mentorToken = await makeUser('mentor-score@example.com', 'Mentor', 'mentor');
+    const { assessmentId } = await seedCaseStudyAssessment();
+    const started = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    const attemptId = started.body.attempt.id;
+    await submitCaseStudy(attemptId);
+
+    const res = await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/review`)
+      .set('Authorization', `Bearer ${mentorToken}`)
+      .send(fullReview());
+    expect(res.status).toBe(200);
+    expect(res.body.attempt.status).toBe('scored');
+    expect(res.body.attempt.percentScore).toBe(75); // 3+3 of 4+4
+    expect(res.body.attempt.totalScore).toBe(6);
+    expect(res.body.attempt.reviewedBy).toBeTruthy();
+    expect(res.body.attempt.answers[0].details.reviewComment).toBe(
+      'Good structure, watch deep nesting.',
+    );
+
+    const graph = await request(app)
+      .get('/api/evidence/graph')
+      .set('Authorization', `Bearer ${token}`);
+    const python = graph.body.skillAssessments.find((s) => s.skillId === 'skill-python');
+    expect(python.sources[0]).toMatchObject({
+      type: 'project',
+      strength: 'high',
+      score: 75,
+    });
+  });
+
+  it('rejects criterion scores above a rubric max', async () => {
+    const mentorToken = await makeUser('mentor-bounds@example.com', 'Mentor', 'mentor');
+    const { assessmentId } = await seedCaseStudyAssessment();
+    const started = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    const attemptId = started.body.attempt.id;
+    await submitCaseStudy(attemptId);
+
+    const review = fullReview();
+    review.review[0].scores[0].points = 3; // approach max is 2
+    const res = await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/review`)
+      .set('Authorization', `Bearer ${mentorToken}`)
+      .send(review);
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects a review that misses one of the rubric questions', async () => {
+    const mentorToken = await makeUser('mentor-partial@example.com', 'Mentor', 'mentor');
+    const { assessmentId } = await seedCaseStudyAssessment();
+    const started = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    const attemptId = started.body.attempt.id;
+    await submitCaseStudy(attemptId);
+
+    const review = fullReview();
+    review.review = review.review.slice(0, 1);
+    const res = await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/review`)
+      .set('Authorization', `Bearer ${mentorToken}`)
+      .send(review);
+    expect(res.status).toBe(400);
+  });
+
+  it('keeps reviewed attempts immutable: re-review rejected', async () => {
+    const mentorToken = await makeUser('mentor-immutable@example.com', 'Mentor', 'mentor');
+    const { assessmentId } = await seedCaseStudyAssessment();
+    const started = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    const attemptId = started.body.attempt.id;
+    await submitCaseStudy(attemptId);
+
+    await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/review`)
+      .set('Authorization', `Bearer ${mentorToken}`)
+      .send(fullReview());
+
+    const again = await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/review`)
+      .set('Authorization', `Bearer ${mentorToken}`)
+      .send(fullReview());
+    expect(again.status).toBe(409);
+  });
+
+  it('refuses to review an auto-graded attempt as if it were rubric-graded', async () => {
+    const mentorToken = await makeUser('mentor-wrong@example.com', 'Mentor', 'mentor');
+    const { assessmentId } = await seedMcqAssessment();
+    const started = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    const attemptId = started.body.attempt.id;
+    await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/submit`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ answers: [{ questionId: 'assess-test-py-q1', selectedOptionId: 'a' }] });
+
+    const res = await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/review`)
+      .set('Authorization', `Bearer ${mentorToken}`)
+      .send(fullReview());
+    expect(res.status).toBe(409); // authored attempt is already scored, not awaiting review
   });
 });

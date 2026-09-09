@@ -3,6 +3,7 @@ import { AssessmentQuestion } from '../models/assessmentQuestion.model.js';
 import { AssessmentAttempt } from '../models/assessmentAttempt.model.js';
 import { Skill } from '../models/skill.model.js';
 import { Role } from '../models/role.model.js';
+import { User } from '../models/user.model.js';
 import { AppError } from '../utils/errors.js';
 import { addEvidenceSource } from './evidence.service.js';
 import * as executionClient from './execution.client.js';
@@ -12,6 +13,11 @@ import * as executionClient from './execution.client.js';
  * the sandboxed execution seam in the data service.
  */
 const AUTO_GRADED_TYPES = ['mcq', 'sql', 'coding'];
+
+/** Types whose submissions are scored later by a human reviewer against a rubric. */
+const RUBRIC_GRADED_TYPES = ['practical', 'case_study'];
+
+const STARTABLE_TYPES = [...AUTO_GRADED_TYPES, ...RUBRIC_GRADED_TYPES];
 
 /** Maps an assessment type to the evidence source type its attempts become. */
 const EVIDENCE_SOURCE_TYPE = {
@@ -73,6 +79,8 @@ function toAttemptJson(attempt) {
     totalScore: attempt.totalScore,
     maxScore: attempt.maxScore,
     percentScore: attempt.percentScore,
+    reviewedBy: attempt.reviewedBy,
+    reviewedAt: attempt.reviewedAt,
     createdAt: attempt.createdAt,
     updatedAt: attempt.updatedAt,
   };
@@ -85,8 +93,8 @@ function toAttemptJson(attempt) {
 export async function startAssessment(userId, assessmentId) {
   const assessment = await Assessment.findOne({ _id: assessmentId, isActive: true }).lean();
   if (!assessment) throw new AppError('Assessment not found', 404);
-  if (!AUTO_GRADED_TYPES.includes(assessment.type)) {
-    throw new AppError(`${assessment.type} assessments are not auto-graded yet`, 422);
+  if (!STARTABLE_TYPES.includes(assessment.type)) {
+    throw new AppError(`${assessment.type} assessments are not gradable yet`, 422);
   }
 
   const questions = await AssessmentQuestion.find({ assessmentId })
@@ -114,6 +122,7 @@ export async function startAssessment(userId, assessmentId) {
       difficulty: q.difficulty,
       points: q.points ?? 1,
       orderIndex: q.orderIndex,
+      rubric: q.rubric ?? [],
     })),
   };
 }
@@ -158,6 +167,19 @@ export async function submitAttempt(userId, attemptId, answers) {
 
   const maxScore = questions.reduce((sum, q) => sum + (q.points ?? 1), 0);
   attempt.answers = gradedNonNull;
+
+  // Rubric-graded types are not scored yet: they wait for a human reviewer.
+  if (RUBRIC_GRADED_TYPES.includes(assessment.type)) {
+    attempt.answers = gradedNonNull.map((a) => ({ ...a, isCorrect: null, points: 0 }));
+    attempt.totalScore = 0;
+    attempt.maxScore = maxScore;
+    attempt.percentScore = null;
+    attempt.status = 'pending_review';
+    attempt.submittedAt = new Date();
+    await attempt.save();
+    return getAttemptById(userId, String(attempt._id));
+  }
+
   attempt.totalScore = awarded;
   attempt.maxScore = maxScore;
   attempt.percentScore = maxScore > 0 ? Math.round((awarded / maxScore) * 100) : 0;
@@ -209,6 +231,8 @@ export async function getAttemptById(userId, attemptId) {
       maxScore: attempt.maxScore,
       percentScore: attempt.percentScore,
       answers: attempt.answers ?? [],
+      reviewedBy: attempt.reviewedBy ?? null,
+      reviewedAt: attempt.reviewedAt ?? null,
       createdAt: attempt.createdAt,
       updatedAt: attempt.updatedAt,
     },
@@ -225,6 +249,142 @@ export async function getAttemptById(userId, attemptId) {
         : {}),
     })),
   };
+}
+
+/**
+ * Reviewer view: every rubric-graded attempt waiting for a human to score it.
+ * Includes the student's identity, the questions (with rubrics) and the raw
+ * submission so a mentor/admin can grade in one place.
+ */
+export async function listPendingAttempts() {
+  const attempts = await AssessmentAttempt.find({ status: 'pending_review' })
+    .sort({ submittedAt: 1 })
+    .lean();
+  if (attempts.length === 0) return { attempts: [] };
+
+  const assessmentIds = [...new Set(attempts.map((a) => String(a.assessmentId)))];
+  const userIds = [...new Set(attempts.map((a) => String(a.userId)))];
+  const [assessments, users, questions] = await Promise.all([
+    Assessment.find({ _id: { $in: assessmentIds } }).lean(),
+    User.find({ _id: { $in: userIds } }).lean(),
+    AssessmentQuestion.find({ assessmentId: { $in: assessmentIds } }).sort({ orderIndex: 1 }).lean(),
+  ]);
+  const assessmentMap = new Map(assessments.map((a) => [String(a._id), a]));
+  const userMap = new Map(users.map((u) => [String(u._id), u]));
+  const questionMap = new Map();
+  for (const q of questions) {
+    if (!questionMap.has(String(q.assessmentId))) questionMap.set(String(q.assessmentId), []);
+    questionMap.get(String(q.assessmentId)).push(q);
+  }
+
+  return {
+    attempts: attempts.map((a) => {
+      const assessment = assessmentMap.get(String(a.assessmentId));
+      const student = userMap.get(String(a.userId));
+      const answersById = new Map((a.answers ?? []).map((ans) => [ans.questionId, ans]));
+      return {
+        id: String(a._id),
+        assessmentId: String(a.assessmentId),
+        assessmentTitle: assessment?.title ?? null,
+        skillId: assessment?.skillId ?? null,
+        maxScore: a.maxScore,
+        startedAt: a.startedAt,
+        submittedAt: a.submittedAt,
+        student: student ? { id: String(student._id), displayName: student.displayName, email: student.email } : null,
+        questions: (questionMap.get(String(a.assessmentId)) ?? []).map((q) => {
+          const ans = answersById.get(String(q._id));
+          return {
+            id: String(q._id),
+            prompt: q.prompt,
+            points: q.points ?? 1,
+            rubric: q.rubric ?? [],
+            submission: ans ? { text: ans.text ?? null, details: ans.details ?? null } : null,
+          };
+        }),
+      };
+    }),
+  };
+}
+
+/**
+ * Scores a pending rubric-graded attempt. Applies criterion scores per
+ * question (each bounded by its rubric max), finalises the attempt as scored
+ * evidence, and writes it to the student's evidence graph as a reviewed source.
+ */
+export async function reviewAttempt(reviewerId, attemptId, review) {
+  const attempt = await AssessmentAttempt.findById(attemptId);
+  if (!attempt) throw new AppError('Attempt not found', 404);
+  if (attempt.status !== 'pending_review') {
+    throw new AppError('Attempt is not awaiting review', 409);
+  }
+
+  const assessment = await Assessment.findById(attempt.assessmentId).lean();
+  if (!assessment || !RUBRIC_GRADED_TYPES.includes(assessment.type)) {
+    throw new AppError('This attempt is not a rubric-graded assessment', 422);
+  }
+  const questions = await AssessmentQuestion.find({ assessmentId: attempt.assessmentId }).lean();
+
+  const rubricQuestions = questions.filter((q) => (q.rubric ?? []).length > 0);
+  const reviewedIds = new Map(review.map((r) => [r.questionId, r]));
+
+  let awarded = 0;
+  const answersById = new Map((attempt.answers ?? []).map((a) => [a.questionId, a]));
+
+  for (const question of rubricQuestions) {
+    const entry = reviewedIds.get(String(question._id));
+    if (!entry) throw new AppError(`Missing review for question ${question._id}`, 400);
+    const criteria = new Map((question.rubric ?? []).map((c) => [c.id, c]));
+    let earned = 0;
+    const criterionScores = [];
+    for (const score of entry.scores) {
+      const criterion = criteria.get(score.criterionId);
+      if (!criterion) throw new AppError(`Unknown rubric criterion ${score.criterionId}`, 400);
+      if (!Number.isFinite(score.points) || score.points < 0 || score.points > criterion.maxPoints) {
+        throw new AppError(
+          `Criterion ${criterion.label}(${criterion.id}) score must be between 0 and ${criterion.maxPoints}`,
+          400,
+        );
+      }
+      earned += score.points;
+      criterionScores.push({ criterionId: score.criterionId, points: score.points });
+    }
+    const capped = Math.min(earned, question.points ?? 0);
+    awarded += capped;
+    const answer = answersById.get(String(question._id));
+    if (answer) {
+      answer.points = capped;
+      answer.isCorrect = capped > 0 && capped >= (question.points ?? 0);
+      answer.details = {
+        ...(answer.details ?? {}),
+        criterionScores,
+        reviewComment: entry.comment ?? null,
+      };
+    }
+  }
+
+  attempt.answers = [...answersById.values()];
+  attempt.totalScore = awarded;
+  attempt.percentScore = attempt.maxScore > 0 ? Math.round((awarded / attempt.maxScore) * 100) : 0;
+  attempt.status = 'scored';
+  attempt.reviewedBy = reviewerId;
+  attempt.reviewedAt = new Date();
+  await attempt.save();
+
+  await addEvidenceSource(
+    String(attempt.userId),
+    assessment.skillId,
+    {
+      type: EVIDENCE_SOURCE_TYPE[assessment.type] ?? 'project',
+      strength: 'high',
+      score: attempt.percentScore,
+      referenceId: String(attempt._id),
+      occurredAt: attempt.submittedAt?.toISOString() ?? new Date().toISOString(),
+      description: `${assessment.title} — rubric-reviewed — ${attempt.percentScore}%`,
+    },
+    attempt.competencyId,
+  );
+
+  return getAttemptById(String(attempt.userId), attemptId);
 }
 
 /**

@@ -33,4 +33,4 @@ MCQ · coding · SQL · debugging · practical task · case study · scenario-ba
 4. ✅ Frontend assessment runner (MCQ, SQL textarea, Python coding).
 5. ✅ SQL engine in the data service (`POST /api/execute/sql`, in-memory SQLite, SELECT-only, timeouts, rowset comparison).
 6. ✅ Sandboxed coding execution (`POST /api/execute/code`, `python -I` subprocess seam, per-case stdin/stdout tests, timeouts + output caps).
-7. Practical case studies with rubric scoring.
+7. ✅ Rubric-scored practical / case-study assessments: published per-question rubrics, submissions move to `pending_review`, then admin/mentor review (`GET /attempts/pending`, `POST /attempts/:id/review`) scores each criterion and writes high-strength evidence. Auto-graded types stay immutable on submit.

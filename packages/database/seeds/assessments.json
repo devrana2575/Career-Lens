@@ -58,5 +58,15 @@
     "roleId": "role-backend-developer",
     "timeLimitMinutes": 15,
     "isActive": true
+  },
+  {
+    "id": "assess-python-case-study",
+    "title": "Python & Data Case Study",
+    "description": "Open-ended practical problems scored by a mentor against a published rubric.",
+    "type": "case_study",
+    "skillId": "skill-python",
+    "roleId": "role-data-scientist",
+    "timeLimitMinutes": 20,
+    "isActive": true
   }
 ]

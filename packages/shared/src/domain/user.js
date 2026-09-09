@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const USER_ROLES = ['student', 'recruiter', 'admin'];
+export const USER_ROLES = ['student', 'recruiter', 'mentor', 'admin'];
 export const UserRoleSchema = z.enum(USER_ROLES);
 
 /**

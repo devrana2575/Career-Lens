@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { SubmitAttemptInputSchema } from '@career/shared';
-import { requireAuth } from '../middleware/auth.js';
+import { ReviewAttemptInputSchema, SubmitAttemptInputSchema } from '@career/shared';
+import { requireAuth, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { AppError } from '../utils/errors.js';
 import {
@@ -9,6 +9,8 @@ import {
   submitAttempt,
   listMyAttempts,
   getAttemptById,
+  listPendingAttempts,
+  reviewAttempt,
 } from '../services/assessment.service.js';
 
 const router = Router();
@@ -30,6 +32,31 @@ router.get('/attempts', async (req, res, next) => {
     next(err);
   }
 });
+
+router.get(
+  '/attempts/pending',
+  requireRole('admin', 'mentor'),
+  async (_req, res, next) => {
+    try {
+      res.json(await listPendingAttempts());
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.post(
+  '/attempts/:id/review',
+  requireRole('admin', 'mentor'),
+  validate(ReviewAttemptInputSchema),
+  async (req, res, next) => {
+    try {
+      res.json(await reviewAttempt(req.user.id, req.params.id, req.body.review));
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 router.get('/attempts/:id', async (req, res, next) => {
   try {
