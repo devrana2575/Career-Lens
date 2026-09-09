@@ -26,6 +26,8 @@ const questionSchema = new mongoose.Schema(
     },
     points: { type: Number, min: 0, default: 1 },
     orderIndex: { type: Number, min: 0, default: 0 },
+    // Grading inputs for sql/coding questions: schema+expected rowset, test cases.
+    config: { type: mongoose.Schema.Types.Mixed, default: {} },
   },
   { timestamps: true, collection: 'assessmentQuestions', strict: false },
 );

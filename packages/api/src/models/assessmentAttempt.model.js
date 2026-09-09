@@ -8,6 +8,7 @@ const answerSchema = new mongoose.Schema(
     isCorrect: { type: Boolean, default: null },
     points: { type: Number, min: 0, default: 0 },
     maxPoints: { type: Number, min: 0, default: 0 },
+    details: { type: mongoose.Schema.Types.Mixed, default: null },
   },
   { _id: false },
 );

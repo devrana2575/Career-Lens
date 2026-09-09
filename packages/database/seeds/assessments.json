@@ -38,5 +38,25 @@
     "roleId": "role-data-scientist",
     "timeLimitMinutes": 12,
     "isActive": true
+  },
+  {
+    "id": "assess-sql-queries",
+    "title": "SQL Queries in the Sandbox",
+    "description": "Write live SQL against a controlled table and get instant, deterministic results.",
+    "type": "sql",
+    "skillId": "skill-sql",
+    "roleId": "role-data-analyst",
+    "timeLimitMinutes": 15,
+    "isActive": true
+  },
+  {
+    "id": "assess-python-coding",
+    "title": "Python Coding Challenge",
+    "description": "Short stdin/stdout coding problems evaluated in an isolated sandbox.",
+    "type": "coding",
+    "skillId": "skill-python",
+    "roleId": "role-backend-developer",
+    "timeLimitMinutes": 15,
+    "isActive": true
   }
 ]

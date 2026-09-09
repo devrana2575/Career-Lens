@@ -10,7 +10,7 @@ Foundations implemented or planned:
 - **Input validation** — Zod schemas on every request body; centralized `validate` middleware; mongoose injects/binds queries.
 - **Error handling** — centralized error middleware maps `ValidationError`, duplicate-key, and `CastError` to safe responses; never leaks internals.
 - **File uploads (planned, Phase 3)** — MIME type + extension + size validation, generated storage names (never trust user filenames), storage abstraction for cloud object stores.
-- **Code execution (planned, Phase 4)** — arbitrary student code is **never** executed inside the main server. A replaceable sandboxed-execution seam will route coding assessment runs to isolated workers or a managed execution service.
+- **Code execution (implemented)** — arbitrary student code and SQL are **never** executed inside the main server. A replaceable sandboxed-execution seam in the data service (`POST /api/execute/code` using isolated `python -I` subprocesses with timeouts and output caps; `POST /api/execute/sql` against per-request in-memory SQLite with SELECT-only enforcement and query timeouts) grades every run. Production can swap the seam for gVisor/Firecracker workers without changing the call contract.
 
 ## Threat model summary
 

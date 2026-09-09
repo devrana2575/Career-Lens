@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api.execute import router as execute_router
 from .api.health import router as health_router
 from .config import get_settings
 
@@ -32,3 +33,4 @@ app.add_middleware(
 )
 
 app.include_router(health_router, prefix="/api")
+app.include_router(execute_router, prefix="/api")

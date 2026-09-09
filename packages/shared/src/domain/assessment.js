@@ -7,9 +7,10 @@ import { z } from 'zod';
  * becomes an immutable piece of evidence for the assessment's skill, so
  * readiness estimates are never based on self-reported claims alone.
  *
- * Only `mcq` question types are auto-graded in this phase; coding, SQL and
- * practical execution use the sandbox seam and controlled schemas (coming in
- * a later phase) and are not startable through the API yet.
+ * `mcq` answers are graded in-process. `sql` and `coding` answers are shipped
+ * to the replaceable execution seam (the data-service sandbox) — student code
+ * and queries are never executed inside the API server. Other types (debugging,
+ * practical, case studies, written, projects) are future rubric-graded modes.
  */
 
 export const ASSESSMENT_TYPES = [
@@ -47,6 +48,10 @@ export const AssessmentQuestionSchema = z.object({
   difficulty: QuestionDifficultySchema.default('intermediate'),
   points: z.number().min(0).default(1),
   orderIndex: z.number().int().min(0).default(0),
+  // Grading inputs for non-mcq questions: for `sql` the controlled schema +
+  // expected rowset, for `coding` the stdin/stdout test cases. Never exposed
+  // to the runner.
+  config: z.record(z.unknown()).default({}),
 });
 
 export const AssessmentDefinitionSchema = z.object({
@@ -80,6 +85,8 @@ export const AttemptAnswerSchema = z.object({
   isCorrect: z.boolean().nullable().optional(),
   points: z.number().min(0).default(0),
   maxPoints: z.number().min(0).default(0),
+  // Execution details for sql/coding answers (sandbox result summary). Bounded.
+  details: z.record(z.unknown()).nullable().optional(),
 });
 
 export const AssessmentAttemptSchema = z.object({
@@ -102,4 +109,5 @@ export const AssessmentAttemptSchema = z.object({
 export const RunnerQuestionSchema = AssessmentQuestionSchema.omit({
   correctOptionId: true,
   explanation: true,
+  config: true,
 });

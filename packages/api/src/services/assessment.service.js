@@ -5,9 +5,13 @@ import { Skill } from '../models/skill.model.js';
 import { Role } from '../models/role.model.js';
 import { AppError } from '../utils/errors.js';
 import { addEvidenceSource } from './evidence.service.js';
+import * as executionClient from './execution.client.js';
 
-/** Only these types are auto-graded deterministically in this phase. */
-const AUTO_GRADED_TYPES = ['mcq'];
+/**
+ * Types graded deterministically in this phase: mcq in-process, sql/coding via
+ * the sandboxed execution seam in the data service.
+ */
+const AUTO_GRADED_TYPES = ['mcq', 'sql', 'coding'];
 
 /** Maps an assessment type to the evidence source type its attempts become. */
 const EVIDENCE_SOURCE_TYPE = {
@@ -132,30 +136,28 @@ export async function submitAttempt(userId, attemptId, answers) {
 
   const uniqueAnswers = [...new Map(answers.map((a) => [a.questionId, a])).values()];
   let awarded = 0;
-  const graded = uniqueAnswers
-    .map((answer) => {
+  const graded = await Promise.all(
+    uniqueAnswers.map(async (answer) => {
       const question = questionMap.get(answer.questionId);
       if (!question) return null;
       const points = question.points ?? 1;
-      const isCorrect =
-        question.type === 'mcq'
-          ? Boolean(question.correctOptionId) && answer.selectedOptionId === question.correctOptionId
-          : false;
-      const scoreNow = isCorrect ? points : 0;
-      awarded += scoreNow;
+      const verdict = await gradeAnswer(question, answer);
+      awarded += verdict.earned;
       return {
         questionId: String(question._id),
         selectedOptionId: answer.selectedOptionId ?? null,
         text: answer.text ?? null,
-        isCorrect,
-        points: scoreNow,
+        isCorrect: verdict.isCorrect,
+        points: verdict.earned,
         maxPoints: points,
+        details: verdict.details ?? null,
       };
-    })
-    .filter(Boolean);
+    }),
+  );
+  const gradedNonNull = graded.filter(Boolean);
 
   const maxScore = questions.reduce((sum, q) => sum + (q.points ?? 1), 0);
-  attempt.answers = graded;
+  attempt.answers = gradedNonNull;
   attempt.totalScore = awarded;
   attempt.maxScore = maxScore;
   attempt.percentScore = maxScore > 0 ? Math.round((awarded / maxScore) * 100) : 0;
@@ -223,6 +225,68 @@ export async function getAttemptById(userId, attemptId) {
         : {}),
     })),
   };
+}
+
+/**
+ * Grades a single answer according to its question type. mcq is graded
+ * in-process; sql and coding delegate to the sandboxed execution seam and
+ * return a bounded { earned, isCorrect, details } verdict. Unsupported types
+ * score nothing — they are future rubric-graded modes.
+ */
+async function gradeAnswer(question, answer) {
+  const points = question.points ?? 1;
+
+  if (question.type === 'mcq') {
+    const isCorrect =
+      Boolean(question.correctOptionId) && answer.selectedOptionId === question.correctOptionId;
+    return { earned: isCorrect ? points : 0, isCorrect, details: null };
+  }
+
+  if (question.type === 'sql') {
+    if (!answer.text?.trim()) return { earned: 0, isCorrect: false, details: null };
+    const result = await executionClient.executeSql({
+      query: answer.text,
+      schema: question.config?.schema,
+      expected: question.config?.expected ?? null,
+    });
+    return {
+      earned: result.passed ? points : 0,
+      isCorrect: Boolean(result.passed),
+      details: {
+        rowCount: result.rowCount,
+        expectedRowCount: result.expectedRowCount,
+        trunc: result.truncated ?? false,
+        durationMs: result.durationMs,
+        error: result.error ?? null,
+      },
+    };
+  }
+
+  if (question.type === 'coding') {
+    const cases = Array.isArray(question.config?.cases) ? question.config.cases : [];
+    if (!answer.text?.trim() || cases.length === 0) {
+      return { earned: 0, isCorrect: false, details: null };
+    }
+    const result = await executionClient.executeCode({
+      language: question.config?.language ?? 'python',
+      code: answer.text,
+      cases,
+    });
+    const ratio = result.totalCases > 0 ? result.passedCases / result.totalCases : 0;
+    const earned = Math.round(points * ratio);
+    return {
+      earned,
+      isCorrect: earned > 0 && earned >= points,
+      details: {
+        totalCases: result.totalCases,
+        passedCases: result.passedCases,
+        durationMs: result.durationMs,
+        results: result.results ?? [],
+      },
+    };
+  }
+
+  return { earned: 0, isCorrect: false, details: null };
 }
 
 export async function listMyAttempts(userId) {

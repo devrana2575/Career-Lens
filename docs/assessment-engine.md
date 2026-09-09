@@ -27,10 +27,10 @@ MCQ · coding · SQL · debugging · practical task · case study · scenario-ba
 
 ## Roadmap
 
-1. Shared assessment schemas (`@career/shared`) + Mongoose models.
-2. Seed data: initial MCQ/SQL/DSA sets per role.
-3. API: list → start → submit → score → evidence record.
-4. Frontend assessment runner.
-5. SQL engine in the data service.
-6. Sandboxed coding execution (Phase 4/5).
+1. ✅ Shared assessment schemas (`@career/shared`) + Mongoose models.
+2. ✅ Seed data: initial MCQ/SQL/DSA sets per role.
+3. ✅ API: list → start → submit → score → evidence record.
+4. ✅ Frontend assessment runner (MCQ, SQL textarea, Python coding).
+5. ✅ SQL engine in the data service (`POST /api/execute/sql`, in-memory SQLite, SELECT-only, timeouts, rowset comparison).
+6. ✅ Sandboxed coding execution (`POST /api/execute/code`, `python -I` subprocess seam, per-case stdin/stdout tests, timeouts + output caps).
 7. Practical case studies with rubric scoring.

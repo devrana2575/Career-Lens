@@ -358,5 +358,144 @@
     "difficulty": "beginner",
     "points": 1,
     "orderIndex": 4
+  },
+  {
+    "id": "assess-q-sql-run-1",
+    "assessmentId": "assess-sql-queries",
+    "skillId": "skill-sql",
+    "type": "sql",
+    "prompt": "Return only the NAMES of Engineering employees, sorted alphabetically. (Table `employees`: id, name, dept, salary.)",
+    "options": [],
+    "correctOptionId": null,
+    "explanation": "Filter on dept and order the result: SELECT name FROM employees WHERE dept = 'Engineering' ORDER BY name.",
+    "difficulty": "beginner",
+    "points": 2,
+    "orderIndex": 0,
+    "config": {
+      "schema": {
+        "tables": [
+          {
+            "name": "employees",
+            "columns": [
+              { "name": "id", "type": "INTEGER" },
+              { "name": "name", "type": "TEXT" },
+              { "name": "dept", "type": "TEXT" },
+              { "name": "salary", "type": "INTEGER" }
+            ],
+            "rows": [
+              [1, "ada", "Engineering", 120000],
+              [2, "grace", "Engineering", 110000],
+              [3, "linus", "Operations", 90000],
+              [4, "katherine", "Operations", 85000],
+              [5, "ravi", "Sales", 95000]
+            ]
+          }
+        ]
+      },
+      "expected": { "columns": ["name"], "rows": [["ada"], ["grace"]] }
+    }
+  },
+  {
+    "id": "assess-q-sql-run-2",
+    "assessmentId": "assess-sql-queries",
+    "skillId": "skill-sql",
+    "type": "sql",
+    "prompt": "Return the highest salary per department as `dept, salary`, sorted by department name. (Table `employees`: id, name, dept, salary.)",
+    "options": [],
+    "correctOptionId": null,
+    "explanation": "Group and aggregate: SELECT dept, MAX(salary) AS salary FROM employees GROUP BY dept ORDER BY dept.",
+    "difficulty": "intermediate",
+    "points": 2,
+    "orderIndex": 1,
+    "config": {
+      "schema": {
+        "tables": [
+          {
+            "name": "employees",
+            "columns": [
+              { "name": "id", "type": "INTEGER" },
+              { "name": "name", "type": "TEXT" },
+              { "name": "dept", "type": "TEXT" },
+              { "name": "salary", "type": "INTEGER" }
+            ],
+            "rows": [
+              [1, "ada", "Engineering", 120000],
+              [2, "grace", "Engineering", 110000],
+              [3, "linus", "Operations", 90000],
+              [4, "katherine", "Operations", 85000],
+              [5, "ravi", "Sales", 95000]
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "columns": ["dept", "salary"],
+        "rows": [
+          ["Engineering", "120000"],
+          ["Operations", "90000"],
+          ["Sales", "95000"]
+        ]
+      }
+    }
+  },
+  {
+    "id": "assess-q-code-1",
+    "assessmentId": "assess-python-coding",
+    "skillId": "skill-python",
+    "type": "coding",
+    "prompt": "Read an integer `n` from stdin and print its square. Example: input `3` prints `9`.",
+    "options": [],
+    "correctOptionId": null,
+    "explanation": "Read the input, compute n*n, and print it: print(int(input()) ** 2).",
+    "difficulty": "beginner",
+    "points": 2,
+    "orderIndex": 0,
+    "config": {
+      "language": "python",
+      "cases": [
+        { "input": "3\n", "expectedOutput": "9\n" },
+        { "input": "-2\n", "expectedOutput": "4\n" }
+      ]
+    }
+  },
+  {
+    "id": "assess-q-code-2",
+    "assessmentId": "assess-python-coding",
+    "skillId": "skill-python",
+    "type": "coding",
+    "prompt": "Read two integers `a` and `b` separated by a space and print their sum. Example: input `3 4` prints `7`.",
+    "options": [],
+    "correctOptionId": null,
+    "explanation": "Split the input, convert to int, and print the sum.",
+    "difficulty": "beginner",
+    "points": 2,
+    "orderIndex": 1,
+    "config": {
+      "language": "python",
+      "cases": [
+        { "input": "3 4\n", "expectedOutput": "7\n" },
+        { "input": "-1 8\n", "expectedOutput": "7\n" }
+      ]
+    }
+  },
+  {
+    "id": "assess-q-code-3",
+    "assessmentId": "assess-python-coding",
+    "skillId": "skill-python",
+    "type": "coding",
+    "prompt": "Read one word from stdin and print it in UPPERCASE. Example: input `hello` prints `HELLO`.",
+    "options": [],
+    "correctOptionId": null,
+    "explanation": "Read the word and call .upper() on it.",
+    "difficulty": "beginner",
+    "points": 2,
+    "orderIndex": 2,
+    "config": {
+      "language": "python",
+      "cases": [
+        { "input": "hello\n", "expectedOutput": "HELLO\n" },
+        { "input": "Career\n", "expectedOutput": "CAREER\n" }
+      ]
+    }
   }
 ]

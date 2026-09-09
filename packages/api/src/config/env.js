@@ -18,6 +18,7 @@ const env = {
   publicUrl: requireEnv('API_PUBLIC_URL', 'http://localhost:4000'),
   frontendUrl: requireEnv('FRONTEND_URL', 'http://localhost:5173'),
   dataServiceUrl: requireEnv('DATA_SERVICE_URL', 'http://localhost:8000'),
+  dataServiceApiKey: requireEnv('DATA_SERVICE_API_KEY', 'change-me'),
 
   mongoUri: requireEnv(
     'MONGODB_URI',
