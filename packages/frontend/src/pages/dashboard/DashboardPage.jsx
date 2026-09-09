@@ -16,6 +16,7 @@ const LEVEL_STYLES = {
 export default function Dashboard() {
   const [profile, setProfile] = useState(null);
   const [roleDetail, setRoleDetail] = useState(null);
+  const [readiness, setReadiness] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,10 +24,19 @@ export default function Dashboard() {
       .then((p) => {
         setProfile(p);
         const targetId = p.targetRoleIds?.[0];
-        if (targetId) return apiFetch(`/roles/${targetId}`);
-        return null;
+        if (!targetId) return null;
+        return Promise.all([
+          apiFetch(`/roles/${targetId}`),
+          apiFetch('/readiness').catch(() => null),
+        ]).then(([detail, report]) => {
+          setRoleDetail(detail);
+          setReadiness(report);
+          return detail;
+        });
       })
-      .then((detail) => setRoleDetail(detail))
+      .then((detail) => {
+        if (!detail) setRoleDetail(null);
+      })
       .catch(() => setProfile(null))
       .finally(() => setLoading(false));
   }, []);
@@ -145,29 +155,54 @@ export default function Dashboard() {
         <div className="grid gap-4 sm:grid-cols-3">
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Readiness estimate</CardDescription>
-              <CardTitle className="text-2xl">—</CardTitle>
+              <CardDescription>Career readiness estimate</CardDescription>
+              <CardTitle className="text-2xl">{hasTargetRole ? (readiness?.roles[0]?.overall ?? '…') : '—'}</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-slate-500">
-              {hasTargetRole ? 'Ready after you add evidence.' : 'Set a target role to see your estimate.'}
+            <CardContent className="space-y-2 text-sm text-slate-500">
+              {readiness?.roles[0] ? (
+                <>
+                  <p>{readiness.roles[0].roleName}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {readiness.roles[0].dimensions.evidenceConfidence != null && (
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs">
+                        evidence confidence {readiness.roles[0].dimensions.evidenceConfidence}
+                      </span>
+                    )}
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs">
+                      evidence-weighted
+                    </span>
+                  </div>
+                  <p className="text-xs">{readiness.explanation}</p>
+                </>
+              ) : (
+                <p>{hasTargetRole ? 'Add evidence to unlock your estimate.' : 'Set a target role to see your estimate.'}</p>
+              )}
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Evidence coverage</CardDescription>
-              <CardTitle className="text-2xl">—</CardTitle>
+              <CardTitle className="text-2xl">
+                {readiness?.roles[0] ? readiness.roles[0].missingEvidence.length : '—'}
+              </CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-slate-500">
-              No evidence recorded yet.
+              {readiness?.roles[0]
+                ? `missing evidence items for ${readiness.roles[0].roleName}. Evidence, not claims, drives the estimate.`
+                : 'No evidence recorded yet.'}
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Next best action</CardDescription>
-              <CardTitle className="text-2xl">—</CardTitle>
+              <CardTitle className="text-base leading-snug">
+                {readiness?.roles[0]?.nextBestAction?.action ?? '—'}
+              </CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-slate-500">
-              {hasTargetRole ? 'Add evidence to start measuring readiness.' : 'Complete your profile to get started.'}
+              {readiness?.roles[0]?.nextBestAction?.reason ?? (
+                <>{hasTargetRole ? 'Add evidence to start measuring readiness.' : 'Complete your profile to get started.'}</>
+              )}
             </CardContent>
           </Card>
         </div>

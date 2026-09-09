@@ -16,6 +16,7 @@ const evidenceSourceSchema = new mongoose.Schema(
 const evidenceSchema = new mongoose.Schema(
   {
     userId: { type: String, required: true },
+    skillId: { type: String, required: true },
     competencyId: { type: String, default: null },
     sources: { type: [evidenceSourceSchema], default: [] },
     proficiencyScore: { type: Number, min: 0, max: 100, default: null },

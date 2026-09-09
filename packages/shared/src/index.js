@@ -2,5 +2,6 @@ export * from './domain/user.js';
 export * from './domain/profile.js';
 export * from './domain/role.js';
 export * from './domain/evidence.js';
+export * from './domain/readiness.js';
 export * from './api/auth.js';
 export * from './api/profile.js';

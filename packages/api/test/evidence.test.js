@@ -134,6 +134,32 @@ describe('evidence API', () => {
     expect(graph.body.skillAssessments[0].sources).toHaveLength(2);
   });
 
+  it('keeps distinct evidence records per skill (regression: skillId filter)', async () => {
+    await Skill.findOneAndUpdate(
+      { _id: 'skill-sql' },
+      { $setOnInsert: { name: 'SQL', slug: 'sql', category: 'language', isActive: true } },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+    await request(app)
+      .post('/api/evidence')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ skillId: 'skill-python', source: { type: 'coding_assessment', strength: 'high', score: 88 } });
+    await request(app)
+      .post('/api/evidence')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ skillId: 'skill-sql', source: { type: 'sql_assessment', strength: 'high', score: 74 } });
+    const graph = await request(app)
+      .get('/api/evidence/graph')
+      .set('Authorization', `Bearer ${token}`);
+    expect(graph.status).toBe(200);
+    const names = graph.body.skillAssessments.map((s) => s.skillName).sort();
+    expect(names).toEqual(['Python', 'SQL']);
+    const python = graph.body.skillAssessments.find((s) => s.skillName === 'Python');
+    const sql = graph.body.skillAssessments.find((s) => s.skillName === 'SQL');
+    expect(python.proficiencyScore).toBe(88);
+    expect(sql.proficiencyScore).toBe(74);
+  });
+
   it('rejects unknown skills (no unexplained scores)', async () => {
     const res = await request(app)
       .post('/api/evidence')
