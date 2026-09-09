@@ -37,6 +37,8 @@ export const EvidenceStatusSchema = z.enum(['pending', 'verified', 'rejected']);
 
 export const EvidenceSourceSchema = z.object({
   type: EvidenceTypeSchema,
+  /** Relative trustworthiness of this individual evidence item. */
+  strength: EVIDENCE_STRENGTH_SCHEMA.default('low'),
   /** Reference into the owning collection (assessmentAttempt, project, ...). */
   referenceId: z.string().optional().nullable(),
   url: z.string().max(2000).optional().nullable(),
@@ -74,4 +76,53 @@ export const SkillAssessmentSchema = z.object({
 export const EvidenceGraphSchema = z.object({
   skillAssessments: z.array(SkillAssessmentSchema),
   lastUpdatedAt: z.iso.datetime().optional().nullable(),
+});
+
+const EvidenceSourceInputSchema = EvidenceSourceSchema.partial().omit({
+  type: true,
+});
+
+export const CreateEvidenceInputSchema = z.object({
+  skillId: z.string().min(1).max(200),
+  source: z.discriminatedUnion('type', [
+    z.object({ type: z.literal('technical_assessment') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('coding_assessment') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('sql_assessment') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('practical_task') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('dsa_practice') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('github') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('project') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('deployed_application') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('resume') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('certification') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('internship') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('experience') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('portfolio') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('written_assessment') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('communication_assessment') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('interview_simulation') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('self_reported') }).merge(EvidenceSourceInputSchema),
+  ]),
+});
+
+export const AddEvidenceSourceInputSchema = z.object({
+  source: z.discriminatedUnion('type', [
+    z.object({ type: z.literal('technical_assessment') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('coding_assessment') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('sql_assessment') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('practical_task') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('dsa_practice') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('github') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('project') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('deployed_application') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('resume') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('certification') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('internship') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('experience') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('portfolio') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('written_assessment') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('communication_assessment') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('interview_simulation') }).merge(EvidenceSourceInputSchema),
+    z.object({ type: z.literal('self_reported') }).merge(EvidenceSourceInputSchema),
+  ]),
 });
