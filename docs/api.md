@@ -40,6 +40,12 @@ All endpoints return consistent JSON. Errors:
 | GET | `/market/skills/trends` | Skill demand trends with dated share series |
 | GET | `/market/skills/:skillId/trend` | Single skill trend (404 for unknown skills) |
 
+## Resume
+
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/resume/analyze` | Parses resume text → matches ontology skills, records a `resume` evidence source per skill (prominence strength only, never a proficiency score). Re-upload replaces the prior resume source for the same skill. Body: `{ text, fileName? }` |
+
 ## Conventions
 
 - Authentication: `Authorization: Bearer <token>`.
@@ -47,10 +53,11 @@ All endpoints return consistent JSON. Errors:
 - Rate limiting: configured by `RATE_LIMIT_*` env vars.
 - Structured logs: every request emits a `pino` JSON log line.
 
-The data service (`packages/data-service`) exposes `/api/health` at `:8000` and Python-only endpoints (resume, GitHub, market). The market ingestion operation is:
+The data service (`packages/data-service`) exposes `/api/health` at `:8000` and Python-only endpoints (resume, GitHub, market). The operations are:
 
 | Method | Path | Notes |
 |---|---|---|
 | POST | `/api/market/build` | Runs the market pipeline; requires `X-API-Key` (see `docs/market-intelligence.md`) |
+| POST | `/api/resume/analyze` | Parses resume text against the ontology; requires `X-API-Key` (see `docs/resume-engine.md`) |
 
 Full endpoint reference grows with each phase.

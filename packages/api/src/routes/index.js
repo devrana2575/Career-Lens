@@ -8,6 +8,7 @@ import skillRoutes from './skill.routes.js';
 import readinessRoutes from './readiness.routes.js';
 import assessmentRoutes from './assessment.routes.js';
 import marketRoutes from './market.routes.js';
+import resumeRoutes from './resume.routes.js';
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use('/evidence', evidenceRoutes);
 router.use('/readiness', readinessRoutes);
 router.use('/assessments', assessmentRoutes);
 router.use('/market', marketRoutes);
+router.use('/resume', resumeRoutes);
 
 export default router;

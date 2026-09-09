@@ -9,6 +9,7 @@ const navItems = [
   { to: '/dashboard/evidence', label: 'Evidence', end: false },
   { to: '/dashboard/assessments', label: 'Assessments', end: false },
   { to: '/dashboard/market', label: 'Market', end: false },
+  { to: '/dashboard/resume', label: 'Resume', end: false },
 ];
 
 const reviewerNavItems = [
