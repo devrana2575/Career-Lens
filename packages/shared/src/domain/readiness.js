@@ -32,6 +32,7 @@ export const RoleReadinessSchema = z.object({
   roleSlug: z.string(),
   overall: z.number().min(0).max(100).nullable(),
   dimensions: ReadinessDimensionsSchema,
+  marketExplanation: z.string().nullable(),
   strengths: z.array(GapItemSchema),
   criticalGaps: z.array(GapItemSchema),
   mediumGaps: z.array(GapItemSchema),

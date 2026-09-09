@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { registerUser, signAccessToken } from '../src/services/auth.service.js';
@@ -111,6 +111,83 @@ describe('readiness engine', () => {
     const report = await computeReadinessReport(userId);
     const entry = report.roles[0].missingEvidence[0];
     expect(entry.note).toContain('Missing evidence does not mean missing skill');
+  });
+});
+
+describe('readiness market alignment', () => {
+  it('stays blank with an honest explanation until a market benchmark exists', async () => {
+    const report = await computeReadinessReport(userId);
+    const role = report.roles[0];
+    expect(role.dimensions.marketAlignment).toBeNull();
+    expect(role.marketExplanation).toContain('No market benchmark');
+    expect(report.explanation).toContain('no fabricated numbers');
+  });
+
+  it('stays blank when the benchmark volume is too sparse', async () => {
+    const { MarketSnapshot } = await import('../src/models/marketSnapshot.model.js');
+    await MarketSnapshot.create({
+      snapshotDate: '2026-03-02',
+      roleId: 'role-data-scientist',
+      location: 'remote',
+      jobCount: 2,
+      source: 'test',
+      confidence: 'insufficient',
+      skillFrequencies: [{ skillId: 'skill-python', count: 2 }],
+    });
+    const report = await computeReadinessReport(userId);
+    expect(report.roles[0].dimensions.marketAlignment).toBeNull();
+    expect(report.roles[0].marketExplanation).toContain('too sparse');
+  });
+
+  it('computes the evidence-weighted share of market-demanded skills', async () => {
+    const { Evidence } = await import('../src/models/evidence.model.js');
+    const { addEvidenceSource } = await import('../src/services/evidence.service.js');
+    const { MarketSnapshot } = await import('../src/models/marketSnapshot.model.js');
+    await MarketSnapshot.create({
+      snapshotDate: '2026-03-02',
+      roleId: 'role-data-scientist',
+      location: 'remote',
+      jobCount: 6,
+      source: 'test',
+      confidence: 'sufficient',
+      skillFrequencies: [
+        { skillId: 'skill-python', count: 6 },
+        { skillId: 'skill-sql', count: 4 },
+      ],
+    });
+    await addEvidenceSource(userId, 'skill-python', {
+      type: 'coding_assessment',
+      strength: 'high',
+      score: 86,
+    });
+
+    const report = await computeReadinessReport(userId);
+    const role = report.roles[0];
+    expect(role.dimensions.marketAlignment).toBe(54);
+    expect(role.marketExplanation).toContain('1 of 2');
+    expect(report.explanation).toContain('compare');
+    void Evidence;
+  });
+
+  it('mentions market demand in roadmap reasons for demanded skills', async () => {
+    const { MarketSnapshot } = await import('../src/models/marketSnapshot.model.js');
+    await MarketSnapshot.create({
+      snapshotDate: '2026-03-02',
+      roleId: 'role-data-scientist',
+      location: 'remote',
+      jobCount: 6,
+      source: 'test',
+      confidence: 'sufficient',
+      skillFrequencies: [
+        { skillId: 'skill-python', count: 6 },
+        { skillId: 'skill-sql', count: 4 },
+      ],
+    });
+    const report = await computeReadinessReport(userId);
+    const roadmap = report.roles[0].roadmap;
+    const sql = roadmap.find((r) => r.skillName === 'SQL');
+    expect(sql).toBeDefined();
+    expect(sql.reason).toContain('67% of recent Data Scientist postings');
   });
 });
 

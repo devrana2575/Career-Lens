@@ -168,6 +168,11 @@ export default function Dashboard() {
                         evidence confidence {readiness.roles[0].dimensions.evidenceConfidence}
                       </span>
                     )}
+                    {readiness.roles[0].dimensions.marketAlignment != null && (
+                      <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs text-violet-700">
+                        market alignment {readiness.roles[0].dimensions.marketAlignment}
+                      </span>
+                    )}
                     <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs">
                       evidence-weighted
                     </span>

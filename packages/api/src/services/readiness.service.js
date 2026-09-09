@@ -3,6 +3,7 @@ import { Skill } from '../models/skill.model.js';
 import { RoleRequirement } from '../models/roleRequirement.model.js';
 import { Evidence } from '../models/evidence.model.js';
 import { Profile } from '../models/profile.model.js';
+import { MarketSnapshot } from '../models/marketSnapshot.model.js';
 
 const SELF_REPORTED = 'self_reported';
 const STRENGTH_THRESHOLD = 70;
@@ -138,6 +139,78 @@ function gapToJson(i) {
   };
 }
 
+const MIN_BENCHMARK_VOLUME = 5;
+
+/**
+ * Market alignment (Phase 9).
+ *
+ * Compares the student's evidence-weighted proficiency on a role's required
+ * skills against the skills that actually appear in the role's latest market
+ * postings. Alignment only covers skills the market lists as demanded; skills
+ * with no benchmark coverage are excluded rather than guessed. If there is no
+ * benchmark or its confidence is insufficient the number stays null.
+ */
+async function computeMarketAlignment(roleId, roleName, items) {
+  const empty = { alignment: null, marketExplanation: null, marketShares: new Map() };
+  const latest = await MarketSnapshot.find({ roleId })
+    .sort({ snapshotDate: -1 })
+    .limit(1)
+    .lean();
+  if (latest.length === 0) {
+    return {
+      ...empty,
+      marketExplanation: `No market benchmark has been recorded for ${roleName} yet, so market alignment stays blank rather than guessed.`,
+    };
+  }
+  const latestDate = latest[0].snapshotDate;
+  const daySnapshots = await MarketSnapshot.find({ roleId, snapshotDate: latestDate }).lean();
+  const jobCount = daySnapshots.reduce((sum, s) => sum + (s.jobCount || 0), 0);
+  const skillTotals = new Map();
+  for (const s of daySnapshots) {
+    for (const { skillId, count } of s.skillFrequencies ?? []) {
+      skillTotals.set(String(skillId), (skillTotals.get(String(skillId)) || 0) + (count || 0));
+    }
+  }
+  if (jobCount < MIN_BENCHMARK_VOLUME) {
+    return {
+      ...empty,
+      marketExplanation: `Market data for ${roleName} is still too sparse (${jobCount} postings) to align against — this stays blank until there is enough demand data.`,
+    };
+  }
+
+  const marketShares = new Map(
+    [...skillTotals].map(([skillId, count]) => [skillId, jobCount ? count / jobCount : 0]),
+  );
+
+  const candidates = items.filter((i) => marketShares.has(i.skillId));
+  if (candidates.length === 0) {
+    return {
+      ...empty,
+      marketShares,
+      marketExplanation: `${roleName} has a market benchmark, but none of its required skills appear in the latest postings.`,
+    };
+  }
+
+  const weightTotal = candidates.reduce((sum, i) => sum + i.weight, 0);
+  if (!weightTotal) {
+    return { ...empty, marketShares };
+  }
+  const covered = candidates.reduce((sum, i) => {
+    const coverage = i.hasScore ? Math.min(1, i.proficiency / 100) * qualityFactor(i.quality) : 0;
+    return sum + i.weight * coverage;
+  }, 0);
+  const alignment = Math.round((covered / weightTotal) * 100);
+  const demonstrated = candidates.filter((i) => i.hasScore).length;
+
+  return {
+    alignment,
+    marketExplanation:
+      `${roleName} benchmarks show ${demonstrated} of ${candidates.length} market-demanded skills with evidence. ` +
+      `Alignment is the evidence-weighted share of those skills — it stays low until proficiency is proven, not claimed.`,
+    marketShares,
+  };
+}
+
 const EFFORT_ESTIMATE = {
   language: '~2 weeks of focused practice',
   library: '~1 week',
@@ -148,14 +221,18 @@ const EFFORT_ESTIMATE = {
   soft: '~4-6 weeks with deliberate practice',
 };
 
-function buildRoadmap({ criticalGaps, mediumGaps, optionalGaps, missingEvidence }) {
+function buildRoadmap({ criticalGaps, mediumGaps, optionalGaps, missingEvidence }, marketShares = new Map(), roleName = 'role') {
   const roadmap = [];
   const push = (item, impact) => {
     const base = gapToJson(item);
     const skill = item;
-    const reason = item.missingEvidence
+    let reason = item.missingEvidence
       ? `${skill.skillName} is ${item.baselineLevel} for this role and has no evidence yet. Evidence, not just claimed knowledge, drives the estimate.`
       : `${skill.skillName} is ${item.baselineLevel} for this role (current proficiency ${item.proficiency ?? 'unknown'}).`;
+    const share = marketShares.get(item.skillId);
+    if (typeof share === 'number' && share > 0) {
+      reason += ` It also appears in ${Math.round(share * 100)}% of recent ${roleName} postings, so closing this gap raises market alignment.`;
+    }
     roadmap.push({
       skillId: base.skillId,
       skillName: base.skillName,
@@ -199,11 +276,18 @@ export async function computeReadinessReport(userId) {
     const { items } = await analyzeRole(userId, String(role._id));
     if (items.length === 0) continue;
 
+    const market = await computeMarketAlignment(String(role._id), role.name, items);
+    const marketShares = market.marketShares;
+
     const technical = technicalReadiness(items);
     const professional = professionalReadiness(items);
     const evidenceConfidence = evidenceConfidenceScore(items);
     const { strengths, criticalGaps, mediumGaps, optionalGaps, missingEvidence } = splitGaps(items);
-    const roadmap = buildRoadmap({ strengths, criticalGaps, mediumGaps, optionalGaps, missingEvidence });
+    const roadmap = buildRoadmap(
+      { strengths, criticalGaps, mediumGaps, optionalGaps, missingEvidence },
+      marketShares,
+      role.name,
+    );
 
     roles.push({
       roleId: String(role._id),
@@ -213,9 +297,10 @@ export async function computeReadinessReport(userId) {
       dimensions: {
         technical,
         professional,
-        marketAlignment: null,
+        marketAlignment: market.alignment,
         evidenceConfidence,
       },
+      marketExplanation: market.marketExplanation,
       strengths: strengths.map(gapToJson),
       criticalGaps: criticalGaps.map(gapToJson),
       mediumGaps: mediumGaps.map(gapToJson),
@@ -229,10 +314,17 @@ export async function computeReadinessReport(userId) {
     });
   }
 
+  let anyAligned = false;
+  for (const role of roles) {
+    if (role.dimensions.marketAlignment != null) anyAligned = true;
+  }
+
   if (roles.length > 0) {
     explanation =
       'Overall readiness is the evidence-weighted coverage of role requirements. ' +
-      'Market alignment stays blank until real market benchmarks are connected — no fabricated numbers.';
+      (anyAligned
+        ? 'Market alignment compares the skills you can prove against the skills in recent role postings.'
+        : 'Market alignment stays blank until a market benchmark is connected — no fabricated numbers.');
   }
 
   const timestamps = await Evidence.find({ userId }).sort({ updatedAt: -1 }).limit(1).lean();

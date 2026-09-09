@@ -9,6 +9,8 @@
 - **Market Alignment** — how current skill levels compare with market-derived benchmarks.
 - **Evidence Confidence** — aggregated confidence backing the above.
 
+> **Phase 9 (shipped):** Market Alignment is now computed from the market engine's `marketSnapshots`. It is the evidence-weighted share of a role's required skills that also appear in the role's latest benchmark (sufficient volume ≥ 5 postings). Skills never seen in the market are excluded rather than guessed, and the number stays `null` (blank in the UI) with a stated reason when no benchmark exists or its volume is too sparse — no fabricated alignment. Roadmap reasons additionally note when a gap hits a market-demanded skill ("appears in X% of recent postings").
+
 Overall estimate is derived from role-specific competency coverage. The exact formula is centralized in one module and configurable (weights from `roleRequirements`, refreshed from market data).
 
 ## Rules
