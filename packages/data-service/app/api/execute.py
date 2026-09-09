@@ -9,12 +9,12 @@ from __future__ import annotations
 
 from typing import Any, Literal, Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
-from ..config import get_settings
 from ..execution.code_runner import execute_code
 from ..execution.sql_runner import execute_sql
+from .security import require_api_key
 
 router = APIRouter()
 
@@ -22,15 +22,6 @@ DEFAULT_CODE_TIMEOUT_MS = 3000
 DEFAULT_SQL_TIMEOUT_MS = 5000
 MAX_TIMEOUT_MS = 15000
 MAX_CODE_CHARS = 20000
-
-
-def require_api_key(x_api_key: Optional[str] = Header(default=None)) -> None:
-    settings = get_settings()
-    if x_api_key != settings.api_key:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or missing API key.",
-        )
 
 
 class Column(BaseModel):

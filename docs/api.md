@@ -30,6 +30,16 @@ All endpoints return consistent JSON. Errors:
 |---|---|---|
 | GET | `/health` | liveness + DB state |
 
+## Market
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/market/overview` | Global snapshot summary (as-of date, volumes, sources) |
+| GET | `/market/benchmarks` | Per-role demand, top skills, locations, experience ranges |
+| GET | `/market/benchmarks/:roleIdOrSlug` | Single role benchmark (404 for unknown roles) |
+| GET | `/market/skills/trends` | Skill demand trends with dated share series |
+| GET | `/market/skills/:skillId/trend` | Single skill trend (404 for unknown skills) |
+
 ## Conventions
 
 - Authentication: `Authorization: Bearer <token>`.
@@ -37,6 +47,10 @@ All endpoints return consistent JSON. Errors:
 - Rate limiting: configured by `RATE_LIMIT_*` env vars.
 - Structured logs: every request emits a `pino` JSON log line.
 
-The data service (`packages/data-service`) exposes `/api/health` at `:8000` and will host Python-only endpoints (resume, GitHub, market).
+The data service (`packages/data-service`) exposes `/api/health` at `:8000` and Python-only endpoints (resume, GitHub, market). The market ingestion operation is:
+
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/api/market/build` | Runs the market pipeline; requires `X-API-Key` (see `docs/market-intelligence.md`) |
 
 Full endpoint reference grows with each phase.

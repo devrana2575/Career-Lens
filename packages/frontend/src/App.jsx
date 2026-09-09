@@ -8,6 +8,7 @@ import RolesPage from './pages/dashboard/RolesPage.jsx';
 import EvidencePage from './pages/dashboard/EvidencePage.jsx';
 import AssessmentsPage from './pages/dashboard/AssessmentsPage.jsx';
 import ReviewsPage from './pages/dashboard/ReviewsPage.jsx';
+import MarketPage from './pages/dashboard/MarketPage.jsx';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -69,6 +70,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <ReviewsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/market"
+            element={
+              <RequireAuth>
+                <MarketPage />
               </RequireAuth>
             }
           />

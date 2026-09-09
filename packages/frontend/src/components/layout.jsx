@@ -8,6 +8,7 @@ const navItems = [
   { to: '/dashboard/roles', label: 'Target roles', end: false },
   { to: '/dashboard/evidence', label: 'Evidence', end: false },
   { to: '/dashboard/assessments', label: 'Assessments', end: false },
+  { to: '/dashboard/market', label: 'Market', end: false },
 ];
 
 const reviewerNavItems = [

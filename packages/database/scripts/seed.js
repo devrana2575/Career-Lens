@@ -92,6 +92,7 @@ async function main() {
   const explicitRequirements = await readJson('roleRequirements.json');
   const assessments = await readJson('assessments.json');
   const assessmentQuestions = await readJson('assessmentQuestions.json');
+  const jobs = await readJson('jobs.json');
 
   const db = client.db();
   let total = 0;
@@ -104,6 +105,7 @@ async function main() {
     'roleRequirements',
     'assessments',
     'assessmentQuestions',
+    'jobs',
   ]) {
     await db.collection(name).deleteMany({});
   }
@@ -118,6 +120,8 @@ async function main() {
 
   total += await upsertMany(db.collection('assessments'), assessments, ['id']);
   total += await upsertMany(db.collection('assessmentQuestions'), assessmentQuestions, ['id']);
+
+  total += await upsertMany(db.collection('jobs'), jobs, ['id']);
 
   console.log(`Seed complete. ${total} documents upserted.`);
   await client.close();

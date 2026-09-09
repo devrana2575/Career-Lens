@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     api_key: str = "change-me"
     api_port: int = 8000
     frontend_url: str = "http://localhost:5173"
+    mongodb_uri: str = "mongodb://localhost:27017"
+    market_db_name: str = "career_intelligence"
 
 
 @lru_cache
