@@ -1,0 +1,266 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import request from 'supertest';
+import { createApp } from '../src/app.js';
+import { registerUser, signAccessToken } from '../src/services/auth.service.js';
+import { Skill } from '../src/models/skill.model.js';
+import { Assessment } from '../src/models/assessment.model.js';
+import { AssessmentQuestion } from '../src/models/assessmentQuestion.model.js';
+
+const app = createApp();
+let token;
+let otherToken;
+let instanceCounter = 0;
+
+async function makeUser(email, displayName = 'Assessment Tester') {
+  const user = await registerUser({
+    email,
+    displayName,
+    password: 'password123',
+    role: 'student',
+  });
+  return signAccessToken(user);
+}
+
+async function seedMcqAssessment(overrides = {}) {
+  const assessmentId = overrides.assessmentId ?? 'assess-test-python';
+  await Assessment.findOneAndUpdate(
+    { _id: assessmentId },
+    {
+      $setOnInsert: {
+        title: 'Test Python Assessment',
+        description: 'A tiny auto-graded MCQ set for tests.',
+        type: 'mcq',
+        skillId: 'skill-python',
+        timeLimitMinutes: 10,
+        isActive: true,
+      },
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+
+  const questions = [
+    {
+      _id: 'assess-test-py-q1',
+      assessmentId,
+      skillId: 'skill-python',
+      type: 'mcq',
+      prompt: 'What is the result of 1 + 1?',
+      options: [
+        { id: 'a', text: '2' },
+        { id: 'b', text: '3' },
+      ],
+      correctOptionId: 'a',
+      explanation: '1 + 1 equals 2.',
+      difficulty: 'beginner',
+      points: 1,
+      orderIndex: 0,
+    },
+    {
+      _id: 'assess-test-py-q2',
+      assessmentId,
+      skillId: 'skill-python',
+      type: 'mcq',
+      prompt: 'Which type is immutable?',
+      options: [
+        { id: 'a', text: 'list' },
+        { id: 'b', text: 'tuple' },
+      ],
+      correctOptionId: 'b',
+      explanation: 'tuples are immutable.',
+      difficulty: 'beginner',
+      points: 1,
+      orderIndex: 1,
+    },
+  ];
+  await AssessmentQuestion.insertMany(questions);
+  return { assessmentId, questions };
+}
+
+beforeEach(async () => {
+  instanceCounter += 1;
+  await Skill.findOneAndUpdate(
+    { _id: 'skill-python' },
+    { $setOnInsert: { name: 'Python', slug: 'python', category: 'language', isActive: true } },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+  token = await makeUser(`assess+${instanceCounter}@example.com`);
+  otherToken = await makeUser(`other-assess+${instanceCounter}@example.com`);
+});
+
+describe('assessments API', () => {
+  it('rejects unauthenticated requests', async () => {
+    const res = await request(app).get('/api/assessments');
+    expect(res.status).toBe(401);
+  });
+
+  it('lists assessments with resolved skill names', async () => {
+    await seedMcqAssessment();
+    const res = await request(app).get('/api/assessments').set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    expect(res.body.assessments).toHaveLength(1);
+    expect(res.body.assessments[0].skillName).toBe('Python');
+    expect(res.body.assessments[0].questionCount).toBe(2);
+  });
+
+  it('only lists active assessments', async () => {
+    await seedMcqAssessment();
+    await Assessment.updateOne({ _id: 'assess-test-python' }, { $set: { isActive: false } });
+    const res = await request(app).get('/api/assessments').set('Authorization', `Bearer ${token}`);
+    expect(res.body.assessments).toHaveLength(0);
+  });
+
+  it('starts an attempt without leaking correct answers', async () => {
+    const { assessmentId } = await seedMcqAssessment();
+    const res = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(201);
+    expect(res.body.attempt.status).toBe('in_progress');
+    expect(res.body.questions).toHaveLength(2);
+    for (const q of res.body.questions) {
+      expect(q).not.toHaveProperty('correctOptionId');
+      expect(q).not.toHaveProperty('explanation');
+    }
+  });
+
+  it('returns 404 for an unknown assessment', async () => {
+    const res = await request(app)
+      .post('/api/assessments/assess-nope/start')
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(404);
+  });
+
+  it('scores an attempt and writes it to the evidence graph', async () => {
+    const { assessmentId } = await seedMcqAssessment();
+    const started = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    const attemptId = started.body.attempt.id;
+
+    const res = await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/submit`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        answers: [
+          { questionId: 'assess-test-py-q1', selectedOptionId: 'a' },
+          { questionId: 'assess-test-py-q2', selectedOptionId: 'b' },
+        ],
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.attempt.status).toBe('scored');
+    expect(res.body.attempt.percentScore).toBe(100);
+    expect(res.body.attempt.totalScore).toBe(2);
+    expect(res.body.attempt.answers.every((a) => a.isCorrect)).toBe(true);
+
+    const graph = await request(app)
+      .get('/api/evidence/graph')
+      .set('Authorization', `Bearer ${token}`);
+    const python = graph.body.skillAssessments.find((s) => s.skillId === 'skill-python');
+    expect(python).toBeTruthy();
+    expect(python.proficiencyScore).toBe(100);
+    expect(python.sources[0]).toMatchObject({ type: 'technical_assessment', strength: 'high' });
+  });
+
+  it('awards points only for correct answers', async () => {
+    const { assessmentId } = await seedMcqAssessment();
+    const started = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    const attemptId = started.body.attempt.id;
+
+    const res = await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/submit`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        answers: [
+          { questionId: 'assess-test-py-q1', selectedOptionId: 'b' },
+          { questionId: 'assess-test-py-q2', selectedOptionId: 'b' },
+        ],
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.attempt.percentScore).toBe(50);
+    expect(res.body.attempt.answers[0].isCorrect).toBe(false);
+    expect(res.body.attempt.answers[0].points).toBe(0);
+  });
+
+  it('keeps attempts immutable: re-submission is rejected', async () => {
+    const { assessmentId } = await seedMcqAssessment();
+    const started = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    const attemptId = started.body.attempt.id;
+
+    await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/submit`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ answers: [{ questionId: 'assess-test-py-q1', selectedOptionId: 'a' }] });
+
+    const again = await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/submit`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ answers: [{ questionId: 'assess-test-py-q2', selectedOptionId: 'b' }] });
+    expect(again.status).toBe(409);
+  });
+
+  it('does not leak another user\'s attempt', async () => {
+    const { assessmentId } = await seedMcqAssessment();
+    const started = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    const attemptId = started.body.attempt.id;
+
+    const hidden = await request(app)
+      .get(`/api/assessments/attempts/${attemptId}`)
+      .set('Authorization', `Bearer ${otherToken}`);
+    expect(hidden.status).toBe(404);
+
+    const stolen = await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/submit`)
+      .set('Authorization', `Bearer ${otherToken}`)
+      .send({ answers: [{ questionId: 'assess-test-py-q1', selectedOptionId: 'a' }] });
+    expect(stolen.status).toBe(404);
+  });
+
+  it('reveals correct answers and explanations only after scoring', async () => {
+    const { assessmentId } = await seedMcqAssessment();
+    const started = await request(app)
+      .post(`/api/assessments/${assessmentId}/start`)
+      .set('Authorization', `Bearer ${token}`);
+    const attemptId = started.body.attempt.id;
+
+    await request(app)
+      .post(`/api/assessments/attempts/${attemptId}/submit`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ answers: [{ questionId: 'assess-test-py-q1', selectedOptionId: 'a' }] });
+
+    const res = await request(app)
+      .get(`/api/assessments/attempts/${attemptId}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    expect(res.body.questions[0].correctOptionId).toBe('a');
+    expect(res.body.questions[0].explanation).toBeTruthy();
+    expect(res.body.attempt.percentScore).toBe(50);
+  });
+
+  it('rejects starting an assessment type that is not auto-graded yet', async () => {
+    await Assessment.findOneAndUpdate(
+      { _id: 'assess-test-sql' },
+      {
+        $setOnInsert: {
+          title: 'SQL Live',
+          type: 'sql',
+          skillId: 'skill-python',
+          timeLimitMinutes: 10,
+          isActive: true,
+        },
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+    const res = await request(app)
+      .post('/api/assessments/assess-test-sql/start')
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(422);
+  });
+});

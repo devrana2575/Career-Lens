@@ -90,11 +90,21 @@ async function main() {
   const competencies = await readJson('competencies.json');
   const roles = await readJson('roles.json');
   const explicitRequirements = await readJson('roleRequirements.json');
+  const assessments = await readJson('assessments.json');
+  const assessmentQuestions = await readJson('assessmentQuestions.json');
 
   const db = client.db();
   let total = 0;
 
-  for (const name of ['skills', 'skillAliases', 'competencies', 'roles', 'roleRequirements']) {
+  for (const name of [
+    'skills',
+    'skillAliases',
+    'competencies',
+    'roles',
+    'roleRequirements',
+    'assessments',
+    'assessmentQuestions',
+  ]) {
     await db.collection(name).deleteMany({});
   }
 
@@ -105,6 +115,9 @@ async function main() {
 
   const requirements = explicitRequirements ?? deriveRoleRequirements(roles, competencies);
   total += await upsertMany(db.collection('roleRequirements'), requirements, ['id']);
+
+  total += await upsertMany(db.collection('assessments'), assessments, ['id']);
+  total += await upsertMany(db.collection('assessmentQuestions'), assessmentQuestions, ['id']);
 
   console.log(`Seed complete. ${total} documents upserted.`);
   await client.close();

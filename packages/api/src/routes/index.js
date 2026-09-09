@@ -6,6 +6,7 @@ import roleRoutes from './role.routes.js';
 import evidenceRoutes from './evidence.routes.js';
 import skillRoutes from './skill.routes.js';
 import readinessRoutes from './readiness.routes.js';
+import assessmentRoutes from './assessment.routes.js';
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use('/roles', roleRoutes);
 router.use('/skills', skillRoutes);
 router.use('/evidence', evidenceRoutes);
 router.use('/readiness', readinessRoutes);
+router.use('/assessments', assessmentRoutes);
 
 export default router;

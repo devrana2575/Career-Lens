@@ -1,0 +1,42 @@
+[
+  {
+    "id": "assess-python-fundamentals",
+    "title": "Python Fundamentals",
+    "description": "Core Python: data types, control flow, collections. Deterministically auto-graded.",
+    "type": "mcq",
+    "skillId": "skill-python",
+    "roleId": "role-backend-developer",
+    "timeLimitMinutes": 12,
+    "isActive": true
+  },
+  {
+    "id": "assess-sql-fundamentals",
+    "title": "SQL Fundamentals",
+    "description": "Querying, filtering, joins and aggregations against relational data.",
+    "type": "mcq",
+    "skillId": "skill-sql",
+    "roleId": "role-data-analyst",
+    "timeLimitMinutes": 12,
+    "isActive": true
+  },
+  {
+    "id": "assess-dsa-basics",
+    "title": "Data Structures & Algorithms Basics",
+    "description": "Stacks, queues, hashing, search and linked structures.",
+    "type": "mcq",
+    "skillId": "skill-dsa",
+    "roleId": "role-software-developer",
+    "timeLimitMinutes": 12,
+    "isActive": true
+  },
+  {
+    "id": "assess-pandas-eda",
+    "title": "Pandas & Data Wrangling",
+    "description": "DataFrames, cleaning, grouping and combining tabular data.",
+    "type": "mcq",
+    "skillId": "skill-pandas",
+    "roleId": "role-data-scientist",
+    "timeLimitMinutes": 12,
+    "isActive": true
+  }
+]

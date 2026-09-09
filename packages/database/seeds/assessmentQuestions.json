@@ -1,0 +1,362 @@
+[
+  {
+    "id": "assess-q-py-1",
+    "assessmentId": "assess-python-fundamentals",
+    "skillId": "skill-python",
+    "type": "mcq",
+    "prompt": "What does `list.append(item)` do?",
+    "options": [
+      { "id": "a", "text": "Adds the item to the end of the list" },
+      { "id": "b", "text": "Inserts the item at the start of the list" },
+      { "id": "c", "text": "Removes the item from the list" },
+      { "id": "d", "text": "Creates a new list with the item" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "append() mutates the list in place, adding one element to the end.",
+    "difficulty": "beginner",
+    "points": 1,
+    "orderIndex": 0
+  },
+  {
+    "id": "assess-q-py-2",
+    "assessmentId": "assess-python-fundamentals",
+    "skillId": "skill-python",
+    "type": "mcq",
+    "prompt": "Which of these types is immutable in Python?",
+    "options": [
+      { "id": "a", "text": "list" },
+      { "id": "b", "text": "tuple" },
+      { "id": "c", "text": "dict" },
+      { "id": "d", "text": "set" }
+    ],
+    "correctOptionId": "b",
+    "explanation": "tuple is immutable; lists, dicts and sets can be mutated in place.",
+    "difficulty": "beginner",
+    "points": 1,
+    "orderIndex": 1
+  },
+  {
+    "id": "assess-q-py-3",
+    "assessmentId": "assess-python-fundamentals",
+    "skillId": "skill-python",
+    "type": "mcq",
+    "prompt": "What is the result of `3 // 2` in Python?",
+    "options": [
+      { "id": "a", "text": "1" },
+      { "id": "b", "text": "1.5" },
+      { "id": "c", "text": "0" },
+      { "id": "d", "text": "An error, because 3 is a float division" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "`//` is floor division for integers; `3 // 2` evaluates to 1.",
+    "difficulty": "beginner",
+    "points": 1,
+    "orderIndex": 2
+  },
+  {
+    "id": "assess-q-py-4",
+    "assessmentId": "assess-python-fundamentals",
+    "skillId": "skill-python",
+    "type": "mcq",
+    "prompt": "Which literal defines a dict with a single key-value pair?",
+    "options": [
+      { "id": "a", "text": "{\"key\": \"value\"}" },
+      { "id": "b", "text": "[\"key\", \"value\"]" },
+      { "id": "c", "text": "(\"key\", \"value\")" },
+      { "id": "d", "text": "{\"key\"}" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "Curly braces with `key: value` create a dict; the tuple and list forms are collections, not dicts.",
+    "difficulty": "intermediate",
+    "points": 1,
+    "orderIndex": 3
+  },
+  {
+    "id": "assess-q-py-5",
+    "assessmentId": "assess-python-fundamentals",
+    "skillId": "skill-python",
+    "type": "mcq",
+    "prompt": "What does a `for` loop iterate over in Python?",
+    "options": [
+      { "id": "a", "text": "Any iterable (list, tuple, string, dict, range, generator…)" },
+      { "id": "b", "text": "Only integers from 0 to some limit" },
+      { "id": "c", "text": "Only dictionaries" },
+      { "id": "d", "text": "Only files" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "`for` iterates over any object implementing the iterator protocol.",
+    "difficulty": "beginner",
+    "points": 1,
+    "orderIndex": 4
+  },
+  {
+    "id": "assess-q-sql-1",
+    "assessmentId": "assess-sql-fundamentals",
+    "skillId": "skill-sql",
+    "type": "mcq",
+    "prompt": "Which clause filters individual rows before aggregation?",
+    "options": [
+      { "id": "a", "text": "WHERE" },
+      { "id": "b", "text": "HAVING" },
+      { "id": "c", "text": "ORDER BY" },
+      { "id": "d", "text": "GROUP BY" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "WHERE filters rows before grouping; HAVING filters groups after aggregation.",
+    "difficulty": "beginner",
+    "points": 1,
+    "orderIndex": 0
+  },
+  {
+    "id": "assess-q-sql-2",
+    "assessmentId": "assess-sql-fundamentals",
+    "skillId": "skill-sql",
+    "type": "mcq",
+    "prompt": "Which statement returns only distinct values?",
+    "options": [
+      { "id": "a", "text": "SELECT DISTINCT" },
+      { "id": "b", "text": "SELECT UNIQUE" },
+      { "id": "c", "text": "SELECT DIFFERENT" },
+      { "id": "d", "text": "SELECT SINGLE" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "`SELECT DISTINCT col` removes duplicate rows from the result set.",
+    "difficulty": "beginner",
+    "points": 1,
+    "orderIndex": 1
+  },
+  {
+    "id": "assess-q-sql-3",
+    "assessmentId": "assess-sql-fundamentals",
+    "skillId": "skill-sql",
+    "type": "mcq",
+    "prompt": "Which join returns only rows with matching keys in both tables?",
+    "options": [
+      { "id": "a", "text": "INNER JOIN" },
+      { "id": "b", "text": "LEFT JOIN" },
+      { "id": "c", "text": "FULL OUTER JOIN" },
+      { "id": "d", "text": "CROSS JOIN" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "INNER JOIN keeps rows where the join key exists on both sides, dropping non-matching rows.",
+    "difficulty": "intermediate",
+    "points": 1,
+    "orderIndex": 2
+  },
+  {
+    "id": "assess-q-sql-4",
+    "assessmentId": "assess-sql-fundamentals",
+    "skillId": "skill-sql",
+    "type": "mcq",
+    "prompt": "Which aggregate counts the rows returned by the query?",
+    "options": [
+      { "id": "a", "text": "COUNT(*)" },
+      { "id": "b", "text": "SUM(*)" },
+      { "id": "c", "text": "AVG(*)" },
+      { "id": "d", "text": "MAX(*)" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "COUNT(*) counts every row; SUM, AVG and MAX operate on numeric values.",
+    "difficulty": "beginner",
+    "points": 1,
+    "orderIndex": 3
+  },
+  {
+    "id": "assess-q-sql-5",
+    "assessmentId": "assess-sql-fundamentals",
+    "skillId": "skill-sql",
+    "type": "mcq",
+    "prompt": "What is the purpose of a primary key?",
+    "options": [
+      { "id": "a", "text": "Uniquely identifies each row in a table" },
+      { "id": "b", "text": "Links every table to the database server" },
+      { "id": "c", "text": "Speeds up the network connection" },
+      { "id": "d", "text": "Stores the table name" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "A primary key is a column (or set of columns) whose values are unique and not null per row.",
+    "difficulty": "beginner",
+    "points": 1,
+    "orderIndex": 4
+  },
+  {
+    "id": "assess-q-dsa-1",
+    "assessmentId": "assess-dsa-basics",
+    "skillId": "skill-dsa",
+    "type": "mcq",
+    "prompt": "A stack processes items in which order?",
+    "options": [
+      { "id": "a", "text": "Last-in, first-out (LIFO)" },
+      { "id": "b", "text": "First-in, first-out (FIFO)" },
+      { "id": "c", "text": "Lowest priority first" },
+      { "id": "d", "text": "Random order" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "A stack is LIFO: the most recently pushed item is removed first.",
+    "difficulty": "beginner",
+    "points": 1,
+    "orderIndex": 0
+  },
+  {
+    "id": "assess-q-dsa-2",
+    "assessmentId": "assess-dsa-basics",
+    "skillId": "skill-dsa",
+    "type": "mcq",
+    "prompt": "Which search algorithm requires a sorted collection?",
+    "options": [
+      { "id": "a", "text": "Binary search" },
+      { "id": "b", "text": "Linear search" },
+      { "id": "c", "text": "Breadth-first search" },
+      { "id": "d", "text": "It does not exist" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "Binary search halves the search space on each step, which only works when elements are ordered.",
+    "difficulty": "intermediate",
+    "points": 1,
+    "orderIndex": 1
+  },
+  {
+    "id": "assess-q-dsa-3",
+    "assessmentId": "assess-dsa-basics",
+    "skillId": "skill-dsa",
+    "type": "mcq",
+    "prompt": "What is the average-case lookup time of a hash table?",
+    "options": [
+      { "id": "a", "text": "O(1)" },
+      { "id": "b", "text": "O(log n)" },
+      { "id": "c", "text": "O(n)" },
+      { "id": "d", "text": "O(n log n)" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "With a good hash function, hash table lookups are constant time on average.",
+    "difficulty": "intermediate",
+    "points": 1,
+    "orderIndex": 2
+  },
+  {
+    "id": "assess-q-dsa-4",
+    "assessmentId": "assess-dsa-basics",
+    "skillId": "skill-dsa",
+    "type": "mcq",
+    "prompt": "A queue processes items in which order?",
+    "options": [
+      { "id": "a", "text": "First-in, first-out (FIFO)" },
+      { "id": "b", "text": "Last-in, first-out (LIFO)" },
+      { "id": "c", "text": "Highest value first" },
+      { "id": "d", "text": "Insertion-time is irrelevant" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "A queue is FIFO: the earliest enqueued item is dequeued first.",
+    "difficulty": "beginner",
+    "points": 1,
+    "orderIndex": 3
+  },
+  {
+    "id": "assess-q-dsa-5",
+    "assessmentId": "assess-dsa-basics",
+    "skillId": "skill-dsa",
+    "type": "mcq",
+    "prompt": "Which collection preserves insertion order and allows duplicates?",
+    "options": [
+      { "id": "a", "text": "List/array" },
+      { "id": "b", "text": "Set" },
+      { "id": "c", "text": "Map key without value" },
+      { "id": "d", "text": "Priority queue" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "Lists/arrays keep order and allow duplicates; sets and maps dedupe and do not expose plain position as a guarantee for all languages (go-to list for order+duplicates is a sequence).",
+    "difficulty": "beginner",
+    "points": 1,
+    "orderIndex": 4
+  },
+  {
+    "id": "assess-q-pd-1",
+    "assessmentId": "assess-pandas-eda",
+    "skillId": "skill-pandas",
+    "type": "mcq",
+    "prompt": "What does `df.dropna()` do by default?",
+    "options": [
+      { "id": "a", "text": "Removes rows containing missing values" },
+      { "id": "b", "text": "Removes duplicate columns" },
+      { "id": "c", "text": "Fills missing values with zero" },
+      { "id": "d", "text": "Sorts the rows" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "dropna() drops rows (or, with axis=1, columns) that contain NaN values.",
+    "difficulty": "beginner",
+    "points": 1,
+    "orderIndex": 0
+  },
+  {
+    "id": "assess-q-pd-2",
+    "assessmentId": "assess-pandas-eda",
+    "skillId": "skill-pandas",
+    "type": "mcq",
+    "prompt": "Which method splits data into groups to run aggregations per group?",
+    "options": [
+      { "id": "a", "text": "groupby()" },
+      { "id": "b", "text": "pivot_wide()" },
+      { "id": "c", "text": "melt_down()" },
+      { "id": "d", "text": "split()" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "groupby() creates GroupBy objects that apply aggregations such as count, mean, or sum per group.",
+    "difficulty": "intermediate",
+    "points": 1,
+    "orderIndex": 1
+  },
+  {
+    "id": "assess-q-pd-3",
+    "assessmentId": "assess-pandas-eda",
+    "skillId": "skill-pandas",
+    "type": "mcq",
+    "prompt": "What does `df.head()` return?",
+    "options": [
+      { "id": "a", "text": "The first 5 rows by default" },
+      { "id": "b", "text": "The last 5 rows by default" },
+      { "id": "c", "text": "The row with the highest values" },
+      { "id": "d", "text": "A summary of column dtypes" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "head(n) returns the first n rows (default 5); tail(n) returns the last n.",
+    "difficulty": "beginner",
+    "points": 1,
+    "orderIndex": 2
+  },
+  {
+    "id": "assess-q-pd-4",
+    "assessmentId": "assess-pandas-eda",
+    "skillId": "skill-pandas",
+    "type": "mcq",
+    "prompt": "Which operation joins two DataFrames on a key column?",
+    "options": [
+      { "id": "a", "text": "merge()" },
+      { "id": "b", "text": "concat_columns()" },
+      { "id": "c", "text": "stack_join()" },
+      { "id": "d", "text": "assign()" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "merge() performs SQL-style joins on columns or indexes; concat() stacks by row or column.",
+    "difficulty": "intermediate",
+    "points": 1,
+    "orderIndex": 3
+  },
+  {
+    "id": "assess-q-pd-5",
+    "assessmentId": "assess-pandas-eda",
+    "skillId": "skill-pandas",
+    "type": "mcq",
+    "prompt": "What does `df['col'].mean()` compute?",
+    "options": [
+      { "id": "a", "text": "The arithmetic mean of the column, ignoring NaN by default" },
+      { "id": "b", "text": "The median of the column" },
+      { "id": "c", "text": "The number of unique values" },
+      { "id": "d", "text": "The sum of the column" }
+    ],
+    "correctOptionId": "a",
+    "explanation": "mean() calculates the arithmetic mean and skips NaN values unless skipna=False.",
+    "difficulty": "beginner",
+    "points": 1,
+    "orderIndex": 4
+  }
+]
