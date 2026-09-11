@@ -23,7 +23,7 @@ export default function VerifyEmailPage() {
         <CardContent className="text-center text-sm">
           {status === 'verifying' && <p className="text-slate-500">Verifying your email…</p>}
           {status === 'verified' && (
-            <p className="text-green-700">Your email is verified. You're all set.</p>
+            <p className="text-green-700">Your email is verified. You are all set.</p>
           )}
           {status === 'failed' && (
             <p className="text-red-600">This verification link is invalid or has expired.</p>

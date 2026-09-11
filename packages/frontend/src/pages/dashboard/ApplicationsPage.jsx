@@ -52,7 +52,7 @@ export default function ApplicationsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-slate-900">My applications</h1>
-            <p className="mt-1 text-sm text-slate-500">Track every role you've applied to.</p>
+            <p className="mt-1 text-sm text-slate-500">Track every role you have applied to.</p>
           </div>
           <Link to="/dashboard/jobs" className="text-sm text-indigo-600 hover:underline">
             Browse jobs →

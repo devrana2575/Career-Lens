@@ -3,7 +3,6 @@ import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { registerUser, signAccessToken } from '../src/services/auth.service.js';
 import { Skill } from '../src/models/skill.model.js';
-import { Evidence } from '../src/models/evidence.model.js';
 import { computeEvidenceScores } from '../src/services/evidence.service.js';
 
 const app = createApp();

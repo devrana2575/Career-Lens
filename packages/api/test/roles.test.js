@@ -26,7 +26,7 @@ async function seedOntology() {
     slug: 'data-scientist',
     family: 'Data & Analytics',
   });
-  const comp = await Competency.create({
+  await Competency.create({
     _id: 'comp-ds-stats',
     name: 'Statistics',
     slug: 'statistics',

@@ -66,7 +66,6 @@ describe('readiness engine', () => {
   });
 
   it('raised scores lower gaps and adds strengths once evidence exists', async () => {
-    const { Evidence } = await import('../src/models/evidence.model.js');
     const { addEvidenceSource } = await import('../src/services/evidence.service.js');
     await addEvidenceSource(userId, 'skill-python', {
       type: 'coding_assessment',
@@ -85,7 +84,6 @@ describe('readiness engine', () => {
   });
 
   it('self-reported evidence counts less than validated evidence', async () => {
-    const { Evidence } = await import('../src/models/evidence.model.js');
     const { addEvidenceSource } = await import('../src/services/evidence.service.js');
     await addEvidenceSource(userId, 'skill-python', {
       type: 'self_reported',
@@ -140,7 +138,6 @@ describe('readiness market alignment', () => {
   });
 
   it('computes the evidence-weighted share of market-demanded skills', async () => {
-    const { Evidence } = await import('../src/models/evidence.model.js');
     const { addEvidenceSource } = await import('../src/services/evidence.service.js');
     const { MarketSnapshot } = await import('../src/models/marketSnapshot.model.js');
     await MarketSnapshot.create({
@@ -166,7 +163,6 @@ describe('readiness market alignment', () => {
     expect(role.dimensions.marketAlignment).toBe(54);
     expect(role.marketExplanation).toContain('1 of 2');
     expect(report.explanation).toContain('compare');
-    void Evidence;
   });
 
   it('mentions market demand in roadmap reasons for demanded skills', async () => {
@@ -198,7 +194,6 @@ describe('readiness API', () => {
   });
 
   it('returns a full report shape for a target role', async () => {
-    const { Evidence } = await import('../src/models/evidence.model.js');
     const { addEvidenceSource } = await import('../src/services/evidence.service.js');
     await addEvidenceSource(userId, 'skill-python', {
       type: 'coding_assessment',
@@ -223,7 +218,6 @@ describe('readiness API', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(bySlug.status).toBe(200);
     expect(bySlug.body.roleSlug).toBe('data-scientist');
-    void Evidence;
   });
 
   it('404s for a role not in the user targets', async () => {
