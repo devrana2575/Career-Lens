@@ -127,7 +127,7 @@ export default function EvidencePage() {
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                     onBlur={() => {
-                      if (!form.skillId || !filter) return;
+                      if (!filter) return;
                       const picked = matchingSkills.find((s) => s.name === filter);
                       if (picked && picked.id !== form.skillId) setForm({ ...form, skillId: picked.id });
                     }}
