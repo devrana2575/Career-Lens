@@ -27,6 +27,7 @@ const reviewerNavItems = [
 
 const recruiterNavItems = [
   { to: '/dashboard/candidates', label: 'Candidates', end: false },
+  { to: '/dashboard/recruiter/applications', label: 'My applicants', end: false },
   { to: '/dashboard/shortlists', label: 'Shortlists', end: false },
 ];
 

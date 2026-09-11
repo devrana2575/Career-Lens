@@ -11,6 +11,10 @@ import {
   updateShortlist,
   deleteShortlist,
 } from '../services/recruiter.service.js';
+import {
+  listRecruiterApplications,
+  updateApplicationByRecruiter,
+} from '../services/application.service.js';
 import { AppError } from '../utils/errors.js';
 
 const router = Router();
@@ -57,6 +61,30 @@ router.post('/candidates/compare', async (req, res, next) => {
       throw new AppError('Validation failed', 422, details);
     }
     res.json(await compareCandidates(req.user.id, parsed.data.candidateIds));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// --- Applications for my jobs ---
+
+router.get('/applications', async (req, res, next) => {
+  try {
+    res.json(await listRecruiterApplications(req.user.id));
+  } catch (err) {
+    next(err);
+  }
+});
+
+const UpdateApplicationBody = z.object({
+  status: z.enum(['applied', 'interviewing', 'offered', 'rejected', 'withdrawn']),
+});
+
+router.patch('/applications/:id', async (req, res, next) => {
+  try {
+    const parsed = UpdateApplicationBody.safeParse(req.body);
+    if (!parsed.success) throw new AppError('Validation failed', 422, parsed.error.issues);
+    res.json(await updateApplicationByRecruiter(req.user.id, req.params.id, parsed.data));
   } catch (err) {
     next(err);
   }

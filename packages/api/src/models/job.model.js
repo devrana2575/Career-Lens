@@ -12,6 +12,7 @@ const jobSchema = new mongoose.Schema(
     collectedDate: { type: String, index: true },
     experienceYears: { type: Number, default: null },
     roleId: { type: String, default: null, index: true },
+    recruiterId: { type: String, default: null, index: true },
     normalizedTitle: { type: String, default: null },
     normalizedLocation: { type: String, default: null },
     isActive: { type: Boolean, default: true },

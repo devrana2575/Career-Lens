@@ -18,6 +18,7 @@ import ProjectsPage from './pages/dashboard/ProjectsPage.jsx';
 import CandidatesPage from './pages/dashboard/CandidatesPage.jsx';
 import CandidateDetailPage from './pages/dashboard/CandidateDetailPage.jsx';
 import ShortlistsPage from './pages/dashboard/ShortlistsPage.jsx';
+import RecruiterApplicationsPage from './pages/dashboard/RecruiterApplicationsPage.jsx';
 import CoachPage from './pages/dashboard/CoachPage.jsx';
 import NotificationsPage from './pages/dashboard/NotificationsPage.jsx';
 import AssessmentBankPage from './pages/dashboard/AssessmentBankPage.jsx';
@@ -146,6 +147,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <ShortlistsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/recruiter/applications"
+            element={
+              <RequireAuth>
+                <RecruiterApplicationsPage />
               </RequireAuth>
             }
           />

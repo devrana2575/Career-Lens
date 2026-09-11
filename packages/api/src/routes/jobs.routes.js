@@ -30,11 +30,27 @@ const CreateJobBody = z.object({
   roleId: z.string().optional(),
 });
 
+router.get('/jobs/mine', requireRole('recruiter', 'admin'), async (req, res, next) => {
+  try {
+    const jobs = await Job.find({ recruiterId: req.user.id }).sort({ collectedDate: -1 }).lean();
+    res.json(jobs);
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/jobs', requireRole('recruiter', 'admin'), async (req, res, next) => {
   try {
     const parsed = CreateJobBody.safeParse(req.body);
     if (!parsed.success) throw new AppError('Validation failed', 422, parsed.error.issues);
-    const job = await Job.create({ _id: crypto.randomUUID(), ...parsed.data, isActive: true, isDemo: true, collectedDate: new Date().toISOString() });
+    const job = await Job.create({
+      _id: crypto.randomUUID(),
+      ...parsed.data,
+      recruiterId: req.user.id,
+      isActive: true,
+      isDemo: true,
+      collectedDate: new Date().toISOString(),
+    });
     res.status(201).json(job);
   } catch (err) {
     next(err);

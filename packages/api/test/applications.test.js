@@ -8,6 +8,7 @@ const app = createApp();
 let counter = 0;
 let studentToken;
 let recruiterToken;
+let recruiterId;
 let jobId;
 
 beforeEach(async () => {
@@ -20,6 +21,7 @@ beforeEach(async () => {
   });
   studentToken = signAccessToken(student);
   recruiterToken = signAccessToken(recruiter);
+  recruiterId = String(recruiter._id ?? recruiter.id);
   const job = await Job.create({
     _id: `job-app-${counter}`,
     title: 'Data Scientist',
@@ -29,6 +31,7 @@ beforeEach(async () => {
     collectedDate: new Date().toISOString(),
     isActive: true,
     isDemo: true,
+    recruiterId,
   });
   jobId = String(job._id);
 });
@@ -106,5 +109,99 @@ describe('job applications for students', () => {
       .set('Authorization', `Bearer ${studentToken}`)
       .send({ title: 'Nope' });
     expect(res.status).toBe(403);
+  });
+});
+
+describe('recruiter applications management', () => {
+  it('lists applicants for recruiter jobs', async () => {
+    await request(app)
+      .post('/api/applications')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .send({ jobId });
+
+    const list = await request(app)
+      .get('/api/recruiter/applications')
+      .set('Authorization', `Bearer ${recruiterToken}`);
+    expect(list.status).toBe(200);
+    expect(list.body.length).toBe(1);
+    expect(list.body[0].job.title).toBe('Data Scientist');
+    expect(list.body[0].candidate.displayName).toBe('S');
+  });
+
+  it('returns 200 empty list when recruiter owns no jobs', async () => {
+    const other = await registerUser({
+      email: `app-rec-empty+${counter}@example.com`, displayName: 'R2', password: 'password123', role: 'recruiter',
+    });
+    const otherToken = signAccessToken(other);
+    const list = await request(app)
+      .get('/api/recruiter/applications')
+      .set('Authorization', `Bearer ${otherToken}`);
+    expect(list.status).toBe(200);
+    expect(list.body).toEqual([]);
+  });
+
+  it('updates application status and notifies the student', async () => {
+    await request(app)
+      .post('/api/applications')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .send({ jobId });
+
+    const applications = await request(app)
+      .get('/api/applications')
+      .set('Authorization', `Bearer ${studentToken}`);
+    const appId = applications.body[0]._id;
+
+    const updated = await request(app)
+      .patch(`/api/recruiter/applications/${appId}`)
+      .set('Authorization', `Bearer ${recruiterToken}`)
+      .send({ status: 'interviewing' });
+    expect(updated.status).toBe(200);
+    expect(updated.body.status).toBe('interviewing');
+
+    const studentApps = await request(app)
+      .get('/api/applications')
+      .set('Authorization', `Bearer ${studentToken}`);
+    expect(studentApps.body[0].status).toBe('interviewing');
+  });
+
+  it('rejects status updates from non-owner recruiters', async () => {
+    await request(app)
+      .post('/api/applications')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .send({ jobId });
+
+    const applications = await request(app)
+      .get('/api/applications')
+      .set('Authorization', `Bearer ${studentToken}`);
+    const appId = applications.body[0]._id;
+
+    const other = await registerUser({
+      email: `app-rec-other+${counter}@example.com`, displayName: 'R2', password: 'password123', role: 'recruiter',
+    });
+    const otherToken = signAccessToken(other);
+
+    const res = await request(app)
+      .patch(`/api/recruiter/applications/${appId}`)
+      .set('Authorization', `Bearer ${otherToken}`)
+      .send({ status: 'offered' });
+    expect(res.status).toBe(404);
+  });
+
+  it('rejects invalid status values', async () => {
+    await request(app)
+      .post('/api/applications')
+      .set('Authorization', `Bearer ${studentToken}`)
+      .send({ jobId });
+
+    const applications = await request(app)
+      .get('/api/applications')
+      .set('Authorization', `Bearer ${studentToken}`);
+    const appId = applications.body[0]._id;
+
+    const res = await request(app)
+      .patch(`/api/recruiter/applications/${appId}`)
+      .set('Authorization', `Bearer ${recruiterToken}`)
+      .send({ status: 'garbage' });
+    expect(res.status).toBe(422);
   });
 });
