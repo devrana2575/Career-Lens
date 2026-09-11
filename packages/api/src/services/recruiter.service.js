@@ -108,7 +108,7 @@ export async function getCandidateDetail(candidateId) {
   }
 
   // Recent evidence
-  const evidenceRecords = await Evidence.find({ candidateId })
+  const evidenceRecords = await Evidence.find({ userId: candidateId })
     .sort({ updatedAt: -1 })
     .limit(10)
     .lean();

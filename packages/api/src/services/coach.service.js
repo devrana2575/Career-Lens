@@ -3,6 +3,8 @@ import { Message } from '../models/message.model.js';
 import { Evidence } from '../models/evidence.model.js';
 import { Skill } from '../models/skill.model.js';
 import { Profile } from '../models/profile.model.js';
+import { Roadmap } from '../models/roadmap.model.js';
+import { Project } from '../models/project.model.js';
 import { AppError } from '../utils/errors.js';
 import { computeReadinessReport } from './readiness.service.js';
 import env from '../config/env.js';
@@ -88,7 +90,111 @@ async function gatherContext(userId) {
       topSkills: (r.strengths ?? []).map((s) => s.skillName),
     }));
 
-  return { readinessSummary, evidenceHighlights, marketInsights, targetRoleIds: profile?.targetRoleIds ?? [] };
+  return { readinessSummary, evidenceHighlights, marketInsights, targetRoleIds: profile?.targetRoleIds ?? [], skillNameMap };
+}
+
+const STOPWORDS = new Set([
+  'a', 'about', 'after', 'all', 'also', 'am', 'an', 'and', 'any', 'are', 'as', 'at', 'be', 'been',
+  'but', 'by', 'can', 'could', 'did', 'do', 'does', 'for', 'from', 'had', 'has', 'have', 'how', 'i',
+  'if', 'in', 'into', 'is', 'it', 'its', 'like', 'me', 'my', 'no', 'not', 'of', 'on', 'or', 'our',
+  'shall', 'should', 'so', 'than', 'that', 'the', 'their', 'them', 'then', 'there', 'these', 'they',
+  'this', 'to', 'up', 'us', 'was', 'we', 'were', 'what', 'when', 'where', 'which', 'who', 'why',
+  'will', 'with', 'would', 'you', 'your',
+]);
+
+function tokenize(text) {
+  const tokens = String(text ?? '').toLowerCase().match(/[a-z0-9]+/g) ?? [];
+  return tokens.filter((t) => t.length > 1 && !STOPWORDS.has(t));
+}
+
+function scoreChunk(queryTokens, chunkTokens) {
+  if (queryTokens.length === 0 || chunkTokens.length === 0) return 0;
+  const counts = new Map();
+  for (const t of chunkTokens) counts.set(t, (counts.get(t) ?? 0) + 1);
+  let overlap = 0;
+  for (const t of new Set(queryTokens)) overlap += counts.get(t) ?? 0;
+  return overlap / Math.sqrt(chunkTokens.length);
+}
+
+async function buildDomainDocuments(userId, readinessSummary, skillNameMap) {
+  const docs = [];
+
+  const evidences = await Evidence.find({ userId }).sort({ confidenceScore: -1 }).limit(60).lean();
+  for (const e of evidences) {
+    const name = skillNameMap.get(e.skillId) ?? e.skillId;
+    const sourceLabels = (e.sources ?? [])
+      .map((s) => s.type ?? s.title ?? '')
+      .filter(Boolean)
+      .join(', ');
+    docs.push({
+      source: 'evidence',
+      label: `${name} evidence`,
+      text: `${name}: proficiency ${e.proficiencyScore ?? '?'}%, confidence ${e.confidenceScore ?? '?'}%, sources ${sourceLabels}`,
+    });
+  }
+
+  for (const role of readinessSummary?.roles ?? []) {
+    const dims = role.dimensions ?? {};
+    const pieces = [
+      `${role.roleName} readiness ${role.overall ?? '?'}%`,
+      dims.technical != null ? `technical ${dims.technical}%` : null,
+      dims.professional != null ? `professional ${dims.professional}%` : null,
+    ];
+    if ((role.strengths ?? []).length) pieces.push(`strengths ${role.strengths.map((s) => s.skillName).join(', ')}`);
+    if ((role.criticalGaps ?? []).length) pieces.push(`critical gaps ${role.criticalGaps.map((g) => g.skillName).join(', ')}`);
+    if ((role.mediumGaps ?? []).length) pieces.push(`medium gaps ${role.mediumGaps.map((g) => g.skillName).join(', ')}`);
+    if (role.nextBestAction) pieces.push(`next best action ${role.nextBestAction.action}`);
+    docs.push({ source: 'readiness', label: role.roleName, text: pieces.filter(Boolean).join(' ') });
+  }
+
+  const roadmaps = await Roadmap.find({ userId }).lean();
+  for (const roadmap of roadmaps) {
+    for (const task of roadmap.tasks ?? []) {
+      if (task.status === 'done') continue;
+      docs.push({
+        source: 'roadmap',
+        label: `${roadmap.roleName} task`,
+        text: `${task.skillName}: ${task.action}. ${task.reason ?? ''} impact ${task.impact ?? '?'} effort ${task.effortEstimate ?? '?'}`,
+      });
+    }
+  }
+
+  const projects = await Project.find({ userId }).sort({ createdAt: -1 }).limit(20).lean();
+  for (const p of projects) {
+    const skillNames = (p.skillsUsed ?? []).map((s) => s.skillSlug ?? s.skillId).join(', ');
+    docs.push({
+      source: 'project',
+      label: p.title,
+      text: `${p.title}: ${p.description ?? ''} tech ${(p.techStack ?? []).join(', ')} skills ${skillNames}`,
+    });
+  }
+
+  for (const role of readinessSummary?.roles ?? []) {
+    if (role.marketExplanation) {
+      docs.push({ source: 'market', label: `${role.roleName} market`, text: `${role.roleName} market: ${role.marketExplanation}` });
+    }
+  }
+
+  return docs;
+}
+
+function retrieveContext(userQuery, docs, { topK = 6, minScore = 0.02 } = {}) {
+  const queryTokens = tokenize(userQuery);
+  if (queryTokens.length === 0 || docs.length === 0) return null;
+
+  const scored = docs
+    .map((doc) => ({ doc, score: scoreChunk(queryTokens, tokenize(doc.text)) }))
+    .filter((x) => x.score >= minScore)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topK);
+
+  if (scored.length === 0) return null;
+
+  const lines = scored.map(({ doc, score }) => {
+    const meta = doc.label ? `${doc.source}:${doc.label}` : doc.source;
+    return `- [${meta}] ${doc.text} (relevance ${(score * 100).toFixed(0)}%)`;
+  });
+  return `RETRIEVED NOTES (ranked by relevance to the conversation):\n${lines.join('\n')}`;
 }
 
 function buildMessages(history, userMessage, contextBlock) {
@@ -173,11 +279,20 @@ export async function sendMessage(userId, { conversationId, content }) {
 
   // Gather RAG context
   const context = await gatherContext(userId);
-  const contextBlock = buildContextBlock(
+  let contextBlock = buildContextBlock(
     context.readinessSummary,
     context.evidenceHighlights,
     context.marketInsights,
   );
+
+  // Retrieval layer: score the user's message against the user's own domain
+  // documents (evidence, readiness, roadmap tasks, projects, market notes) and
+  // inject the most relevant ones so the coach answers from concrete data.
+  const docs = await buildDomainDocuments(userId, context.readinessSummary, context.skillNameMap);
+  const retrieved = retrieveContext(content, docs);
+  if (retrieved) {
+    contextBlock += `\n\n${retrieved}`;
+  }
 
   // Get conversation history (last 20 messages for context window)
   const history = await Message.find({ conversationId: conv._id })
@@ -199,6 +314,7 @@ export async function sendMessage(userId, { conversationId, content }) {
       readinessSummary: context.readinessSummary,
       marketInsights: context.marketInsights,
       evidenceHighlights: context.evidenceHighlights,
+      retrievedNotes: retrieved ?? null,
     },
   });
   await assistantMsg.save();

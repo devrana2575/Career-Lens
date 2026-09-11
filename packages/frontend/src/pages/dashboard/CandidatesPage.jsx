@@ -25,6 +25,7 @@ export default function CandidatesPage() {
   const [roleFilter, setRoleFilter] = useState('');
   const [skillFilter, setSkillFilter] = useState('');
   const [roles, setRoles] = useState([]);
+  const [selected, setSelected] = useState([]);
 
   useEffect(() => {
     Promise.all([
@@ -32,9 +33,15 @@ export default function CandidatesPage() {
       apiFetch('/roles'),
     ]).then(([cands, rl]) => {
       setCandidates(cands);
-      setRoles(rl);
+      setRoles(rl.roles ?? []);
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
+
+  function toggle(id) {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -57,29 +64,38 @@ export default function CandidatesPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3">
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-500">Filter by role</label>
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm"
-            >
-              <option value="">All roles</option>
-              {roles.map((r) => (
-                <option key={r.id} value={r.id}>{r.name}</option>
-              ))}
-            </select>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="flex flex-wrap gap-3">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-500">Filter by role</label>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm"
+              >
+                <option value="">All roles</option>
+                {roles.map((r) => (
+                  <option key={r.id} value={r.id}>{r.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-500">Filter by skill</label>
+              <Input
+                placeholder="e.g. React"
+                value={skillFilter}
+                onChange={(e) => setSkillFilter(e.target.value)}
+                className="w-48"
+              />
+            </div>
           </div>
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-500">Filter by skill</label>
-            <Input
-              placeholder="e.g. React"
-              value={skillFilter}
-              onChange={(e) => setSkillFilter(e.target.value)}
-              className="w-48"
-            />
-          </div>
+          <Link
+            to={`/dashboard/candidates/compare?ids=${selected.join(',')}`}
+            className="text-sm text-indigo-600 hover:underline disabled:pointer-events-none disabled:opacity-50"
+            aria-disabled={selected.length < 2}
+          >
+            Compare {selected.length || 0} candidate{selected.length === 1 ? '' : 's'} →
+          </Link>
         </div>
 
         {loading ? (
@@ -102,7 +118,18 @@ export default function CandidatesPage() {
                         <p className="text-xs text-slate-500 mt-0.5">{c.headline}</p>
                       )}
                     </div>
-                    <ReadinessBadge score={c.readinessScore} />
+                    <div className="flex items-center gap-2">
+                      <ReadinessBadge score={c.readinessScore} />
+                      <label className="flex items-center gap-1 text-xs text-slate-500">
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(c.userId)}
+                          onChange={() => toggle(c.userId)}
+                          className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600"
+                        />
+                        Compare
+                      </label>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">

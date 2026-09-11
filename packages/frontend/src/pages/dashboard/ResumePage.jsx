@@ -39,9 +39,32 @@ export default function ResumePage() {
   function handleFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    setError('');
+
+    const MAX_SIZE_MB = 2;
+    const ALLOWED_EXTENSIONS = ['.txt', '.md', '.text', '.markdown'];
+    const dotIndex = file.name.lastIndexOf('.');
+    const ext = dotIndex > 0 ? file.name.slice(dotIndex).toLowerCase() : '';
+
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      setError(`That file is larger than ${MAX_SIZE_MB} MB — upload a smaller plain-text resume.`);
+      return;
+    }
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      setError('Only .txt, .md, .text, or .markdown files are accepted.');
+      return;
+    }
+
     setFileName(file.name);
     const reader = new FileReader();
-    reader.onload = () => setText(String(reader.result ?? ''));
+    reader.onload = () => {
+      const content = String(reader.result ?? '');
+      if (content.includes('\u0000')) {
+        setError('That file appears to be binary — save it as plain text (.txt / .md) and retry.');
+        return;
+      }
+      setText(content);
+    };
     reader.onerror = () => setError('Could not read that file — save it as plain text (.txt / .md) and retry.');
     reader.readAsText(file);
   }

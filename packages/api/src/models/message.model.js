@@ -5,6 +5,7 @@ const coachContextSchema = new mongoose.Schema(
     readinessSummary: { type: mongoose.Schema.Types.Mixed, default: null },
     marketInsights: { type: mongoose.Schema.Types.Mixed, default: null },
     evidenceHighlights: { type: mongoose.Schema.Types.Mixed, default: null },
+    retrievedNotes: { type: mongoose.Schema.Types.Mixed, default: null },
   },
   { _id: false },
 );

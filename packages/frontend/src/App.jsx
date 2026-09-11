@@ -18,6 +18,9 @@ import ShortlistsPage from './pages/dashboard/ShortlistsPage.jsx';
 import CoachPage from './pages/dashboard/CoachPage.jsx';
 import NotificationsPage from './pages/dashboard/NotificationsPage.jsx';
 import AssessmentBankPage from './pages/dashboard/AssessmentBankPage.jsx';
+import RoadmapPage from './pages/dashboard/RoadmapPage.jsx';
+import ComparePage from './pages/dashboard/ComparePage.jsx';
+import CandidateComparePage from './pages/dashboard/CandidateComparePage.jsx';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -159,6 +162,30 @@ export default function App() {
             element={
               <RequireAuth>
                 <AssessmentBankPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/roadmap"
+            element={
+              <RequireAuth>
+                <RoadmapPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/compare"
+            element={
+              <RequireAuth>
+                <ComparePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/candidates/compare"
+            element={
+              <RequireAuth>
+                <CandidateComparePage />
               </RequireAuth>
             }
           />

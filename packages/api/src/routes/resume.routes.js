@@ -8,9 +8,31 @@ const router = Router();
 
 router.use(requireAuth);
 
+const VALID_TEXT_EXTENSIONS = new Set(['.txt', '.md', '.text', '.markdown']);
+
 const AnalyzeBody = z.object({
-  text: z.string().min(1).max(50000),
-  fileName: z.string().trim().max(200).optional(),
+  text: z
+    .string()
+    .min(1)
+    .max(50_000)
+    .refine((value) => !value.includes('\u0000'), {
+      message: 'Text contains NUL bytes',
+    }),
+  fileName: z
+    .string()
+    .trim()
+    .max(200)
+    .optional()
+    .refine(
+      (name) => {
+        if (!name) return true;
+        const dotIndex = name.lastIndexOf('.');
+        if (dotIndex <= 0) return false;
+        const ext = name.slice(dotIndex).toLowerCase();
+        return VALID_TEXT_EXTENSIONS.has(ext);
+      },
+      { message: 'Only .txt, .md, .text, or .markdown files are accepted' },
+    ),
 });
 
 router.post('/analyze', async (req, res, next) => {

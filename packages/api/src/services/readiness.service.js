@@ -96,7 +96,7 @@ function evidenceConfidenceScore(items) {
   return Math.round(conf);
 }
 
-function splitGaps(items) {
+export function splitGaps(items) {
   const strengths = [];
   const criticalGaps = [];
   const mediumGaps = [];
@@ -150,7 +150,7 @@ const MIN_BENCHMARK_VOLUME = 5;
  * with no benchmark coverage are excluded rather than guessed. If there is no
  * benchmark or its confidence is insufficient the number stays null.
  */
-async function computeMarketAlignment(roleId, roleName, items) {
+export async function computeMarketAlignment(roleId, roleName, items) {
   const empty = { alignment: null, marketExplanation: null, marketShares: new Map() };
   const latest = await MarketSnapshot.find({ roleId })
     .sort({ snapshotDate: -1 })
@@ -221,7 +221,7 @@ const EFFORT_ESTIMATE = {
   soft: '~4-6 weeks with deliberate practice',
 };
 
-function buildRoadmap({ criticalGaps, mediumGaps, optionalGaps, missingEvidence }, marketShares = new Map(), roleName = 'role') {
+export function buildRoadmap({ criticalGaps, mediumGaps, optionalGaps, missingEvidence }, marketShares = new Map(), roleName = 'role') {
   const roadmap = [];
   const push = (item, impact) => {
     const base = gapToJson(item);
@@ -255,6 +255,39 @@ function buildRoadmap({ criticalGaps, mediumGaps, optionalGaps, missingEvidence 
   }
 
   return roadmap;
+}
+
+/** Per-role readiness snapshot for comparison screens (Phase 19). */
+export async function computeRoleSnapshot(userId, roleIdOrSlug) {
+  const role = await Role.findOne({
+    $or: [{ _id: roleIdOrSlug }, { slug: roleIdOrSlug }],
+    isActive: true,
+  }).lean();
+  if (!role) return null;
+
+  const { items } = await analyzeRole(userId, String(role._id));
+  if (items.length === 0) return null;
+
+  const market = await computeMarketAlignment(String(role._id), role.name, items);
+  const { strengths, criticalGaps, mediumGaps, optionalGaps, missingEvidence } = splitGaps(items);
+
+  return {
+    roleId: String(role._id),
+    roleName: role.name,
+    roleSlug: role.slug,
+    items,
+    technical: technicalReadiness(items),
+    professional: professionalReadiness(items),
+    evidenceConfidence: evidenceConfidenceScore(items),
+    marketAlignment: market.alignment,
+    marketExplanation: market.marketExplanation,
+    marketShares: market.marketShares,
+    strengths: strengths.map(gapToJson),
+    criticalGaps: criticalGaps.map(gapToJson),
+    mediumGaps: mediumGaps.map(gapToJson),
+    optionalGaps: optionalGaps.map(gapToJson),
+    missingEvidence: missingEvidence.map(gapToJson),
+  };
 }
 
 export async function computeReadinessReport(userId) {
