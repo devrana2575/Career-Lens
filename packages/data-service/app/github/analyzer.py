@@ -81,7 +81,7 @@ def analyze_github(
             text = " ".join(
                 [clean_text(r.name), clean_text(r.description or "")]
                 + [clean_text(t) for t in r.topics]
-                + [clean_text(l) for l in r.languages]
+                + [clean_text(lang) for lang in r.languages]
             )
             if extract_skills(text, [term]):
                 skill_repos.setdefault(term.skill_id, []).append(r)
@@ -91,7 +91,9 @@ def analyze_github(
 
     # Build results
     total_stars = sum(r.stars for r in repo_infos)
-    top_languages = sorted(all_languages.keys(), key=lambda l: all_languages[l], reverse=True)[:10]
+    top_languages = sorted(
+        all_languages.keys(), key=lambda lang: all_languages[lang], reverse=True
+    )[:10]
 
     activity_level = "low"
     if len(repo_infos) >= 20:

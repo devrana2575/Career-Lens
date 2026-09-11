@@ -56,7 +56,7 @@ def analyze(payload: GitHubAnalysisRequest, _: None = Depends(require_api_key)):
         raise HTTPException(
             status_code=502,
             detail=f"Failed to fetch GitHub profile for '{username}': {exc}",
-        )
+        ) from exc
 
     try:
         repos = fetch_user_repos(username)
@@ -64,7 +64,7 @@ def analyze(payload: GitHubAnalysisRequest, _: None = Depends(require_api_key)):
         raise HTTPException(
             status_code=502,
             detail=f"Failed to fetch GitHub repos for '{username}': {exc}",
-        )
+        ) from exc
 
     terms, info = load_vocab(get_settings())
     result = analyze_github(profile, repos, terms, info)
