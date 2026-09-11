@@ -16,6 +16,7 @@ import CandidatesPage from './pages/dashboard/CandidatesPage.jsx';
 import CandidateDetailPage from './pages/dashboard/CandidateDetailPage.jsx';
 import ShortlistsPage from './pages/dashboard/ShortlistsPage.jsx';
 import CoachPage from './pages/dashboard/CoachPage.jsx';
+import NotificationsPage from './pages/dashboard/NotificationsPage.jsx';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -141,6 +142,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <CoachPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/notifications"
+            element={
+              <RequireAuth>
+                <NotificationsPage />
               </RequireAuth>
             }
           />

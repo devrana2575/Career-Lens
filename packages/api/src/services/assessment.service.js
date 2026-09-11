@@ -6,6 +6,7 @@ import { Role } from '../models/role.model.js';
 import { User } from '../models/user.model.js';
 import { AppError } from '../utils/errors.js';
 import { addEvidenceSource } from './evidence.service.js';
+import { createNotification } from './notification.service.js';
 import * as executionClient from './execution.client.js';
 
 /**
@@ -201,6 +202,18 @@ export async function submitAttempt(userId, attemptId, answers) {
     attempt.competencyId,
   );
 
+  await createNotification({
+    userId,
+    kind: 'assessment_completed',
+    title: `Assessment completed: ${assessment.title}`,
+    message: `You scored ${attempt.percentScore}% on ${assessment.title}.`,
+    data: {
+      assessmentId: String(assessment._id),
+      attemptId: String(attempt._id),
+      percentScore: attempt.percentScore,
+    },
+  });
+
   return getAttemptById(userId, String(attempt._id));
 }
 
@@ -383,6 +396,18 @@ export async function reviewAttempt(reviewerId, attemptId, review) {
     },
     attempt.competencyId,
   );
+
+  await createNotification({
+    userId: String(attempt.userId),
+    kind: 'assessment_reviewed',
+    title: `Review complete: ${assessment.title}`,
+    message: `Your ${assessment.title} attempt was reviewed and scored ${attempt.percentScore}%.`,
+    data: {
+      assessmentId: String(assessment._id),
+      attemptId: String(attempt._id),
+      percentScore: attempt.percentScore,
+    },
+  });
 
   return getAttemptById(String(attempt.userId), attemptId);
 }

@@ -13,6 +13,7 @@ import githubRoutes from './github.routes.js';
 import projectRoutes from './project.routes.js';
 import recruiterRoutes from './recruiter.routes.js';
 import coachRoutes from './coach.routes.js';
+import notificationRoutes from './notification.routes.js';
 
 const router = Router();
 
@@ -30,5 +31,6 @@ router.use('/github', githubRoutes);
 router.use('/projects', projectRoutes);
 router.use('/recruiter', recruiterRoutes);
 router.use('/coach', coachRoutes);
+router.use('/notifications', notificationRoutes);
 
 export default router;

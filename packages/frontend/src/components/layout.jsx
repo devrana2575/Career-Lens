@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
+import NotificationBell from './notification-bell.jsx';
 import { useAuth } from '../lib/auth-context.jsx';
 import { cn } from '../lib/utils.js';
 
@@ -111,7 +112,10 @@ export default function Layout({ children }) {
           </button>
         </div>
       </aside>
-      <main className="flex-1 overflow-y-auto bg-slate-50">
+      <main className="flex flex-1 flex-col overflow-y-auto bg-slate-50">
+        <div className="flex h-14 shrink-0 items-center justify-end border-b border-slate-200 bg-white px-6">
+          <NotificationBell />
+        </div>
         <div className="mx-auto max-w-5xl px-6 py-8">{children}</div>
       </main>
     </div>

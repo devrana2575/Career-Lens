@@ -4,6 +4,7 @@ import { Evidence } from '../models/evidence.model.js';
 import { Shortlist } from '../models/shortlist.model.js';
 import { Skill } from '../models/skill.model.js';
 import { computeReadinessReport } from './readiness.service.js';
+import { notifyShortlistedCandidates } from './notification.service.js';
 import { AppError } from '../utils/errors.js';
 
 async function buildCandidateSummary(userId) {
@@ -157,6 +158,10 @@ export async function compareCandidates(recruiterId, candidateIds) {
 export async function createShortlist(recruiterId, { name, candidateIds = [] }) {
   const shortlist = new Shortlist({ recruiterId, name, candidateIds });
   await shortlist.save();
+  await notifyShortlistedCandidates(candidateIds, {
+    shortlistId: String(shortlist._id),
+    shortlistName: name,
+  });
   return shortlist.toJSON();
 }
 
@@ -173,9 +178,17 @@ export async function getShortlist(recruiterId, shortlistId) {
 export async function updateShortlist(recruiterId, shortlistId, update) {
   const sl = await Shortlist.findOne({ _id: shortlistId, recruiterId });
   if (!sl) throw new AppError('Shortlist not found', 404);
+  const previous = new Set((sl.candidateIds ?? []).map(String));
   if (update.name !== undefined) sl.name = update.name;
   if (update.candidateIds !== undefined) sl.candidateIds = update.candidateIds;
   await sl.save();
+  const added = (sl.candidateIds ?? []).filter((candidateId) => !previous.has(String(candidateId)));
+  if (added.length > 0) {
+    await notifyShortlistedCandidates(added, {
+      shortlistId: String(sl._id),
+      shortlistName: sl.name,
+    });
+  }
   return sl.toJSON();
 }
 

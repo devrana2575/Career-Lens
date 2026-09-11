@@ -13,29 +13,56 @@ const LEVEL_STYLES = {
   optional: 'bg-slate-100 text-slate-600 border-slate-200',
 };
 
+const SOURCE_LABELS = {
+  technical_assessment: 'Technical assessment',
+  coding_assessment: 'Coding assessment',
+  sql_assessment: 'SQL assessment',
+  practical_task: 'Practical task',
+  dsa_practice: 'DSA practice',
+  github: 'GitHub',
+  project: 'Project',
+  deployed_application: 'Deployed app',
+  resume: 'Resume',
+  certification: 'Certification',
+  internship: 'Internship',
+  experience: 'Work experience',
+  portfolio: 'Portfolio',
+  self_reported: 'Self-reported',
+};
+
+function formatDay(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
 export default function Dashboard() {
   const [profile, setProfile] = useState(null);
   const [roleDetail, setRoleDetail] = useState(null);
   const [readiness, setReadiness] = useState(null);
+  const [evidence, setEvidence] = useState([]);
+  const [marketInsight, setMarketInsight] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     apiFetch('/profiles/me')
-      .then((p) => {
+      .then(async (p) => {
         setProfile(p);
         const targetId = p.targetRoleIds?.[0];
-        if (!targetId) return null;
-        return Promise.all([
-          apiFetch(`/roles/${targetId}`),
+        const [detail, report] = await Promise.all([
+          targetId ? apiFetch(`/roles/${targetId}`).catch(() => null) : Promise.resolve(null),
           apiFetch('/readiness').catch(() => null),
-        ]).then(([detail, report]) => {
-          setRoleDetail(detail);
-          setReadiness(report);
-          return detail;
-        });
-      })
-      .then((detail) => {
-        if (!detail) setRoleDetail(null);
+        ]);
+        setRoleDetail(detail);
+        setReadiness(report);
+        const firstRole = report?.roles?.[0];
+        const [records, benchmark] = await Promise.all([
+          apiFetch('/evidence').catch(() => null),
+          firstRole?.roleSlug
+            ? apiFetch(`/market/benchmarks/${firstRole.roleSlug}`).catch(() => null)
+            : Promise.resolve(null),
+        ]);
+        setEvidence(records?.records ?? []);
+        setMarketInsight(benchmark);
       })
       .catch(() => setProfile(null))
       .finally(() => setLoading(false));
@@ -54,6 +81,24 @@ export default function Dashboard() {
     (roleDetail?.competencies ?? []).some((c) => c.skills.some((s) => s.id === r.skillId)),
   );
   const reqBySkill = new Map(requirements.map((r) => [r.skillId, r]));
+
+  const totalEvidence = evidence.length;
+  const validatedCount = evidence.filter((record) =>
+    (record.sources ?? []).some((s) => s.type !== 'self_reported'),
+  ).length;
+  const recentActivity = evidence
+    .flatMap((record) =>
+      (record.sources ?? []).map((src) => ({
+        key: `${record.id}:${src.type}:${src.referenceId ?? ''}`,
+        skillName: record.skillName,
+        type: src.type,
+        occurredAt: src.occurredAt ?? record.updatedAt ?? record.createdAt,
+        description: src.description,
+      })),
+    )
+    .filter((item) => item.occurredAt)
+    .sort((a, b) => String(b.occurredAt).localeCompare(String(a.occurredAt)))
+    .slice(0, 5);
 
   return (
     <Layout>
@@ -207,6 +252,88 @@ export default function Dashboard() {
             <CardContent className="text-sm text-slate-500">
               {readiness?.roles[0]?.nextBestAction?.reason ?? (
                 <>{hasTargetRole ? 'Add evidence to start measuring readiness.' : 'Complete your profile to get started.'}</>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Evidence summary</CardDescription>
+              <CardTitle className="text-2xl">{totalEvidence}</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-slate-500">
+              <p>
+                {validatedCount} of {totalEvidence} skills backed by verifiable evidence —
+                graded assessments, projects, GitHub, resume.
+              </p>
+              <Link to="/dashboard/evidence" className="mt-2 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                Manage evidence →
+              </Link>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Market insight</CardDescription>
+              <CardTitle className="text-lg leading-snug">
+                {marketInsight ? marketInsight.roleName : '—'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-slate-500">
+              {marketInsight ? (
+                <>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs capitalize">
+                      demand: {marketInsight.demand}
+                    </span>
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs">
+                      {marketInsight.dataVolume}
+                    </span>
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs">
+                      confidence: {marketInsight.confidence}
+                    </span>
+                  </div>
+                  {marketInsight.topSkills?.length > 0 && (
+                    <p className="text-xs text-slate-400">
+                      Top skills:{' '}
+                      {marketInsight.topSkills
+                        .slice(0, 5)
+                        .map((s) => s.skillName)
+                        .join(', ')}
+                    </p>
+                  )}
+                  <Link to="/dashboard/market" className="inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                    Explore market data →
+                  </Link>
+                </>
+              ) : (
+                <p>No benchmark data for your target role yet. Import job postings to unlock demand signals.</p>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Recent activity</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              {recentActivity.length === 0 ? (
+                <p className="text-slate-500">No evidence recorded yet.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {recentActivity.map((item) => (
+                    <li key={item.key} className="flex items-start justify-between gap-2">
+                      <span className="text-slate-600">
+                        <span className="font-medium text-slate-900">{item.skillName}</span>
+                        <span className="text-slate-400"> · {SOURCE_LABELS[item.type] ?? item.type}</span>
+                        {item.description ? <span className="text-slate-400"> — {item.description}</span> : null}
+                      </span>
+                      <span className="shrink-0 text-xs capitalize text-slate-400">
+                        {formatDay(item.occurredAt)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               )}
             </CardContent>
           </Card>
