@@ -23,12 +23,13 @@ class RepoInfo:
 
 
 def _repo_to_info(repo: dict) -> RepoInfo:
+    lang = repo.get("language")
     return RepoInfo(
         name=repo.get("name", ""),
         url=repo.get("html_url") or repo.get("url", ""),
         stars=repo.get("stargazers_count", 0),
         description=repo.get("description"),
-        languages=[],  # filled in later per-repo via languages endpoint if needed
+        languages=[lang] if lang else [],
         topics=repo.get("topics", []),
     )
 
@@ -55,16 +56,13 @@ def analyze_github(
 
     # Build a searchable text blob from all repos (descriptions, topics, languages)
     blob_parts: list[str] = []
+    all_languages: dict[str, int] = {}
     for r in repo_infos:
         if r.description:
             blob_parts.append(clean_text(r.description))
         for t in r.topics:
             blob_parts.append(clean_text(t))
-
-    all_languages: dict[str, int] = {}
-    for repo in repos:
-        lang = repo.get("language")
-        if lang:
+        for lang in r.languages:
             all_languages[lang] = all_languages.get(lang, 0) + 1
             blob_parts.append(clean_text(lang))
 

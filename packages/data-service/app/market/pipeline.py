@@ -22,6 +22,7 @@ from .classifier import build_role_profiles, classify
 from .extractor import build_skill_terms, extract_skills
 from .normalizer import clean_text, deduplicate, normalize_location
 from .snapshot import build_snapshot_rows
+from .sources import collect_jobs
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ def run_pipeline(settings: Optional[Settings] = None) -> dict[str, int]:
     db = client[settings.market_db_name or DEFAULT_DB]
 
     try:
-        jobs = list(db["jobs"].find({}))
+        jobs = collect_jobs(db, settings)
         skills = list(db["skills"].find({}))
         aliases = list(db["skillAliases"].find({}))
         roles = list(db["roles"].find({}))
@@ -73,15 +74,15 @@ def run_pipeline(settings: Optional[Settings] = None) -> dict[str, int]:
             if db["marketSnapshots"].find_one(key) is not None:
                 skipped += 1
                 continue
-            row["demoData"] = True
             db["marketSnapshots"].insert_one(row)
             created += 1
 
         # Demo postings only: the pipeline owns this dataset and rewrites it
-        # idempotently. Non-demo (live-collected) jobs are never touched so the
-        # append-only promise for later sources holds.
+        # idempotently.  Live and HTTP jobs are never touched.
+        demo_jobs = [j for j in seen if j.get("isDemo", False)]
         db["jobs"].delete_many({"isDemo": True})
-        db["jobs"].insert_many(seen)
+        if demo_jobs:
+            db["jobs"].insert_many(demo_jobs)
         db["jobSkills"].delete_many({"jobId": {"$in": list(existing_job_ids)}})
         skill_docs = [
             {"jobId": job_id, "skillId": skill_id}

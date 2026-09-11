@@ -12,8 +12,7 @@ from typing import Any, Literal, Optional
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
-from ..execution.code_runner import execute_code
-from ..execution.sql_runner import execute_sql
+from ..execution.backend import get_execution_backend
 from .security import require_api_key
 
 router = APIRouter()
@@ -81,8 +80,9 @@ class CodeResult(BaseModel):
 
 @router.post("/execute/sql", response_model=SqlResult, dependencies=[Depends(require_api_key)])
 def execute_sql_endpoint(body: SqlExecuteRequest) -> SqlResult:
+    backend = get_execution_backend()
     return SqlResult(
-        **execute_sql(
+        **backend.execute_sql(
             body.query,
             body.dataset.model_dump(by_alias=True),
             body.expected,
@@ -93,8 +93,9 @@ def execute_sql_endpoint(body: SqlExecuteRequest) -> SqlResult:
 
 @router.post("/execute/code", response_model=CodeResult, dependencies=[Depends(require_api_key)])
 def execute_code_endpoint(body: CodeExecuteRequest) -> CodeResult:
+    backend = get_execution_backend()
     return CodeResult(
-        **execute_code(
+        **backend.execute_code(
             body.language,
             body.code,
             [case.model_dump() for case in body.cases],

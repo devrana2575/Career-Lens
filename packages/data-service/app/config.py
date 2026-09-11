@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:5173"
     mongodb_uri: str = "mongodb://localhost:27017"
     market_db_name: str = "career_intelligence"
+    market_sources: str = "demo,live"
+    market_source_endpoint: str = ""
+    job_worker_enabled: bool = True
+    execution_backend: str = "local"
+    managed_sandbox_url: str = ""
 
 
 @lru_cache
