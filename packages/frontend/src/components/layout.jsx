@@ -18,6 +18,7 @@ const navItems = [
 
 const reviewerNavItems = [
   { to: '/dashboard/reviews', label: 'Reviews', end: false },
+  { to: '/dashboard/assessment-bank', label: 'Assessment bank', end: false },
 ];
 
 const recruiterNavItems = [

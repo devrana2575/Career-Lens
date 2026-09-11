@@ -17,6 +17,7 @@ import CandidateDetailPage from './pages/dashboard/CandidateDetailPage.jsx';
 import ShortlistsPage from './pages/dashboard/ShortlistsPage.jsx';
 import CoachPage from './pages/dashboard/CoachPage.jsx';
 import NotificationsPage from './pages/dashboard/NotificationsPage.jsx';
+import AssessmentBankPage from './pages/dashboard/AssessmentBankPage.jsx';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -150,6 +151,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <NotificationsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/assessment-bank"
+            element={
+              <RequireAuth>
+                <AssessmentBankPage />
               </RequireAuth>
             }
           />

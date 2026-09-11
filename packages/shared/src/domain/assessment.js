@@ -79,6 +79,60 @@ export const AssessmentDefinitionSchema = z.object({
   questionCount: z.number().int().min(0).optional(),
 });
 
+/** Authoring payload for creating an assessment. */
+export const CreateAssessmentInputSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1).max(120),
+  description: z.string().max(1000).nullable().optional(),
+  type: AssessmentTypeSchema,
+  skillId: z.string().min(1),
+  roleId: z.string().nullable().optional(),
+  timeLimitMinutes: z.number().int().min(1).max(600).default(10),
+  isActive: z.boolean().default(true),
+});
+
+/** Authoring payload for updating assessment fields. No defaults — absent keys are untouched. */
+export const UpdateAssessmentInputSchema = z.object({
+  title: z.string().min(1).max(120).optional(),
+  description: z.string().max(1000).nullable().optional(),
+  type: AssessmentTypeSchema.optional(),
+  skillId: z.string().min(1).optional(),
+  roleId: z.string().nullable().optional(),
+  timeLimitMinutes: z.number().int().min(1).max(600).optional(),
+  isActive: z.boolean().optional(),
+});
+
+/** Authoring payload for a single question in the assessment bank. */
+export const QuestionInputSchema = z.object({
+  type: AssessmentTypeSchema,
+  prompt: z.string().min(1).max(2000),
+  options: z.array(QuestionOptionSchema).default([]),
+  correctOptionId: z.string().nullable().optional(),
+  explanation: z.string().max(2000).nullable().optional(),
+  difficulty: QuestionDifficultySchema.default('intermediate'),
+  points: z.number().min(0).max(100).default(1),
+  orderIndex: z.number().int().min(0).optional(),
+  // Grading inputs for sql/coding questions: schema+expected rowset, test cases.
+  config: z.record(z.unknown()).default({}),
+  rubric: z.array(RubricCriterionSchema).default([]),
+});
+
+export const CreateQuestionInputSchema = QuestionInputSchema;
+
+/** Authoring payload for updating a question. No defaults — absent keys are untouched. */
+export const UpdateQuestionInputSchema = z.object({
+  type: AssessmentTypeSchema.optional(),
+  prompt: z.string().min(1).max(2000).optional(),
+  options: z.array(QuestionOptionSchema).optional(),
+  correctOptionId: z.string().nullable().optional(),
+  explanation: z.string().max(2000).nullable().optional(),
+  difficulty: QuestionDifficultySchema.optional(),
+  points: z.number().min(0).max(100).optional(),
+  orderIndex: z.number().int().min(0).optional(),
+  config: z.record(z.unknown()).optional(),
+  rubric: z.array(RubricCriterionSchema).optional(),
+});
+
 /** What the runner sends when submitting an attempt. Immutable thereafter. */
 export const AttemptAnswerInputSchema = z.object({
   questionId: z.string(),
