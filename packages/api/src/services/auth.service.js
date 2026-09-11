@@ -1,9 +1,11 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'node:crypto';
 import { User } from '../models/user.model.js';
 import { Profile } from '../models/profile.model.js';
 import { AppError } from '../utils/errors.js';
 import env from '../config/env.js';
+import { sendMailLite, emailEnabled } from './mailer.service.js';
 
 const SALT_ROUNDS = 12;
 
@@ -80,3 +82,65 @@ export function expiresInSeconds() {
   if (!match) return 604800;
   return Number(match[1]) * (secondsPerUnit[match[2]] ?? 1);
 }
+
+const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
+
+/** Creates a reset token and emails the reset link when mail is available. */
+export async function requestPasswordReset(email) {
+  const user = await User.findOne({ email });
+  if (!user) return { sent: false, reason: 'user-not-found' };
+  const token = crypto.randomBytes(24).toString('hex');
+  user.passwordResetTokenHash = hashToken(token);
+  user.passwordResetExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
+  await user.save();
+  await sendMailLite({
+    to: user.email,
+    subject: 'Reset your password',
+    text: `Use this link to reset your password (valid for 1 hour):\n${env.frontendUrl}/reset-password?token=${token}`,
+  });
+  return { sent: true };
+}
+
+/** Consumes a reset token and sets a new password. */
+export async function resetPassword({ token, password }) {
+  const user = await User.findOne({ passwordResetTokenHash: hashToken(token) });
+  if (!user || !user.passwordResetExpiresAt || user.passwordResetExpiresAt < new Date()) {
+    throw new AppError('Password reset link is invalid or has expired', 400);
+  }
+  user.passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+  user.passwordResetTokenHash = null;
+  user.passwordResetExpiresAt = null;
+  await user.save();
+  return user;
+}
+
+/** Emails a verification link when mail is configured. */
+export async function requestEmailVerification(email) {
+  const user = await User.findOne({ email });
+  if (!user || user.emailVerified) return false;
+  const token = crypto.randomBytes(24).toString('hex');
+  user.emailVerificationTokenHash = hashToken(token);
+  user.emailVerificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  await user.save();
+  await sendMailLite({
+    to: user.email,
+    subject: 'Verify your email',
+    text: `Confirm your email with this link (valid for 24 hours):\n${env.frontendUrl}/verify-email?token=${token}`,
+  });
+  return true;
+}
+
+/** Marks the account verified when the token is valid. */
+export async function verifyEmail({ token }) {
+  const user = await User.findOne({ emailVerificationTokenHash: hashToken(token) });
+  if (!user || !user.emailVerificationExpiresAt || user.emailVerificationExpiresAt < new Date()) {
+    throw new AppError('Verification link is invalid or has expired', 400);
+  }
+  user.emailVerified = true;
+  user.emailVerificationTokenHash = null;
+  user.emailVerificationExpiresAt = null;
+  await user.save();
+  return user;
+}
+
+export const emailIsEnabled = emailEnabled;

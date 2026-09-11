@@ -42,6 +42,17 @@ const env = {
   llmApiUrl: requireEnv('LLM_API_URL', ''),
   llmApiKey: requireEnv('LLM_API_KEY', ''),
   llmModel: requireEnv('LLM_MODEL', 'gpt-4o-mini'),
+
+  smtpHost: requireEnv('SMTP_HOST', ''),
+  smtpPort: requireEnv('SMTP_PORT', ''),
+  smtpSecure: requireEnv('SMTP_SECURE', ''),
+  smtpUser: requireEnv('SMTP_USER', ''),
+  smtpPassword: requireEnv('SMTP_PASSWORD', ''),
+  smtpFrom: requireEnv('SMTP_FROM', 'no-reply@careerlens.example'),
+  mailhookUrl: requireEnv('MAILHOOK_URL', ''),
+
+  mlApiUrl: requireEnv('ML_API_URL', ''),
+  mlApiKey: requireEnv('ML_API_KEY', ''),
 };
 
 export default env;

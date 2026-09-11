@@ -1,4 +1,6 @@
 import { Notification } from '../models/notification.model.js';
+import { User } from '../models/user.model.js';
+import { sendMailLite, emailEnabled } from './mailer.service.js';
 
 function toJson(doc) {
   return {
@@ -15,6 +17,11 @@ function toJson(doc) {
 
 export async function createNotification({ userId, kind, title, message, data = {} }) {
   const notification = await Notification.create({ userId, kind, title, message, data });
+  if (emailEnabled()) {
+    User.findById(userId).lean().then((user) => {
+      if (user?.email) sendMailLite({ to: user.email, subject: title, text: message }).catch(() => {});
+    }).catch(() => {});
+  }
   return toJson(notification);
 }
 

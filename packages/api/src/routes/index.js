@@ -17,6 +17,9 @@ import notificationRoutes from './notification.routes.js';
 import assessmentAdminRoutes from './assessmentAdmin.routes.js';
 import roadmapRoutes from './roadmap.routes.js';
 import comparisonRoutes from './comparison.routes.js';
+import sandboxRoutes from './sandbox.routes.js';
+import jobsRoutes from './jobs.routes.js';
+import applicationRoutes from './application.routes.js';
 
 const router = Router();
 
@@ -36,6 +39,9 @@ router.use('/recruiter', recruiterRoutes);
 router.use('/coach', coachRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/comparison', comparisonRoutes);
+router.use('/sandbox', sandboxRoutes);
+router.use(jobsRoutes);
+router.use(applicationRoutes);
 router.use('/assessment-bank', assessmentAdminRoutes);
 router.use('/roadmap', roadmapRoutes);
 

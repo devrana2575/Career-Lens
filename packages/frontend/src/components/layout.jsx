@@ -6,6 +6,8 @@ import { cn } from '../lib/utils.js';
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', end: true },
   { to: '/dashboard/roadmap', label: 'Roadmap', end: false },
+  { to: '/dashboard/jobs', label: 'Jobs', end: false },
+  { to: '/dashboard/applications', label: 'Applications', end: false },
   { to: '/dashboard/compare', label: 'Compare roles', end: false },
   { to: '/dashboard/profile', label: 'Profile', end: false },
   { to: '/dashboard/roles', label: 'Target roles', end: false },

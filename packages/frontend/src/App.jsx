@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './lib/auth-context.jsx';
 import LoginPage from './pages/auth/LoginPage.jsx';
 import RegisterPage from './pages/auth/RegisterPage.jsx';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage.jsx';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage.jsx';
+import VerifyEmailPage from './pages/auth/VerifyEmailPage.jsx';
 import DashboardPage from './pages/dashboard/DashboardPage.jsx';
 import ProfilePage from './pages/dashboard/ProfilePage.jsx';
 import RolesPage from './pages/dashboard/RolesPage.jsx';
@@ -21,6 +24,8 @@ import AssessmentBankPage from './pages/dashboard/AssessmentBankPage.jsx';
 import RoadmapPage from './pages/dashboard/RoadmapPage.jsx';
 import ComparePage from './pages/dashboard/ComparePage.jsx';
 import CandidateComparePage from './pages/dashboard/CandidateComparePage.jsx';
+import JobsPage from './pages/dashboard/JobsPage.jsx';
+import ApplicationsPage from './pages/dashboard/ApplicationsPage.jsx';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -37,6 +42,9 @@ export default function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route
             path="/dashboard"
             element={
@@ -186,6 +194,22 @@ export default function App() {
             element={
               <RequireAuth>
                 <CandidateComparePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/jobs"
+            element={
+              <RequireAuth>
+                <JobsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/applications"
+            element={
+              <RequireAuth>
+                <ApplicationsPage />
               </RequireAuth>
             }
           />

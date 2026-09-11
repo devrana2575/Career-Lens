@@ -71,6 +71,10 @@ export default function LoginPage() {
             <Link to="/register" className="font-medium text-indigo-600 hover:underline">
               Create an account
             </Link>
+            {' · '}
+            <Link to="/forgot-password" className="font-medium text-indigo-600 hover:underline">
+              Forgot password?
+            </Link>
           </p>
         </CardContent>
       </Card>
