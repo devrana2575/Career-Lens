@@ -53,16 +53,14 @@ def analyze_github(
     """
     repo_infos = [_repo_to_info(r) for r in repos]
 
-    # Build a searchable text blob from all repos (description + topics + languages)
+    # Build a searchable text blob from all repos (descriptions, topics, languages)
     blob_parts: list[str] = []
     for r in repo_infos:
         if r.description:
             blob_parts.append(clean_text(r.description))
         for t in r.topics:
             blob_parts.append(clean_text(t))
-    blob = " ".join(blob_parts)
 
-    # Also match against language names — they map to skills in the ontology
     all_languages: dict[str, int] = {}
     for repo in repos:
         lang = repo.get("language")
