@@ -31,7 +31,7 @@ describe('coach with grounding', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ content: 'What can I do to strengthen my Python profile?' });
     expect(res.status).toBe(200);
-    expect(res.body.content).toContain('configured yet');
+    expect(res.body.content).toContain('Python');
     expect(res.body.context.retrievedNotes).toContain('evidence:Python evidence');
     expect(res.body.context.evidenceHighlights[0].skillName).toBe('Python');
 

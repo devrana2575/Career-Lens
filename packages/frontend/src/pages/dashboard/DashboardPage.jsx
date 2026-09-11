@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout.jsx';
 import { apiFetch } from '../../lib/api.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card.jsx';
@@ -36,6 +36,7 @@ function formatDay(iso) {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [roleDetail, setRoleDetail] = useState(null);
   const [readiness, setReadiness] = useState(null);
@@ -139,11 +140,11 @@ export default function Dashboard() {
               </li>
             </ul>
             {!hasTargetRole ? (
-              <Button onClick={() => (window.location.href = '/dashboard/roles')}>
+              <Button onClick={() => navigate('/dashboard/roles')}>
                 Choose target roles
               </Button>
             ) : (
-              <Button onClick={() => (window.location.href = '/dashboard/profile')}>
+              <Button onClick={() => navigate('/dashboard/profile')}>
                 Continue setup
               </Button>
             )}

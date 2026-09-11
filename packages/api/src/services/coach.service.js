@@ -221,7 +221,7 @@ async function callLLM(messages) {
   const model = env.llmModel;
 
   if (!apiUrl || !apiKey) {
-    return "I'm the Career Intelligence Coach, but my AI service isn't configured yet. Please set the LLM_API_URL and LLM_API_KEY environment variables to enable conversational coaching.";
+    return null;
   }
 
   const response = await fetch(apiUrl, {
@@ -244,7 +244,201 @@ async function callLLM(messages) {
   }
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content ?? 'No response generated.';
+  return data.choices?.[0]?.message?.content ?? null;
+}
+
+// --- Offline answer engine ------------------------------------------------
+// Produces a useful, data-grounded reply without calling an external LLM.
+// Uses the same RAG context the prompt builder would feed a model.
+
+const INTENT_KEYWORDS = {
+  readiness: ['ready', 'readiness', 'score', 'overall', 'resume', 'hire', 'job ready', 'prepared'],
+  gaps: ['gap', 'missing', 'weak', 'improve', 'lacking', 'short', 'need to learn', 'biggest'],
+  strengths: ['strength', 'good at', 'proficient', 'strong in', 'best at'],
+  evidence: ['evidence', 'proof', 'validate', 'prove', 'proven', 'portfolio', 'project', 'github'],
+  plan: ['plan', 'next step', 'roadmap', 'what should i do', 'action', 'steps', 'sequence', 'first'],
+  market: ['market', 'demand', 'salary', 'trend', 'hiring', 'job search', 'industry'],
+  assessment: ['assessment', 'practice', 'test', 'exam', 'mock', 'interview'],
+  compare: ['compare', 'vs', 'versus', 'which role', 'which career', 'decide'],
+  greeting: ['hi', 'hello', 'hey', 'namaste', 'greetings'],
+};
+
+function stem(tok) {
+  if (tok.length <= 3) return tok;
+  if (tok.endsWith('ies') && tok.length > 4) return `${tok.slice(0, -3)}y`;
+  if (tok.endsWith('ing') && tok.length > 5) return tok.slice(0, -3);
+  if (tok.endsWith('es') && tok.length > 4) return tok.slice(0, -2);
+  if (tok.endsWith('s') ) return tok.slice(0, -1);
+  return tok;
+}
+
+function detectIntent(query) {
+  const tokens = tokenize(query);
+  if (tokens.length === 0) return 'general';
+  const tokenStems = new Set(tokens.map(stem));
+  let best = 'general';
+  let bestScore = 0;
+  for (const [intent, keywords] of Object.entries(INTENT_KEYWORDS)) {
+    const hits = keywords.filter((k) => {
+      const kt = tokenize(k);
+      return kt.length > 0 && kt.every((t) => tokenStems.has(stem(t)));
+    }).length;
+    const score = hits / Math.sqrt(keywords.length);
+    if (score > bestScore) {
+      best = intent;
+      bestScore = score;
+    }
+  }
+  return bestScore > 0 ? best : 'general';
+}
+
+function intentReply(intent, contexts, userMessage) {
+  const { readinessSummary, evidenceHighlights, marketInsights, targetRoleIds } = contexts;
+  const roles = readinessSummary?.roles ?? [];
+  const primary = roles[0];
+  const lines = [];
+
+  if (intent === 'greeting') {
+    lines.push(
+      `Hi! I'm your Career Intelligence Coach${targetRoleIds.length ? ` — I can see you're tracking ${roles.map((r) => r.roleName).join(', ')}` : ''}.`,
+      ``,
+      `Ask me about your readiness, your skill gaps, what evidence would strengthen your profile, or what to work on next.`,
+    );
+    return lines.join('\n');
+  }
+
+  if (intent === 'readiness') {
+    if (!primary) {
+      lines.push('You have not selected a target role yet, so I have no readiness estimate to report.');
+      lines.push('Head to "Target roles" in the sidebar, pick the role you are aiming for, then come back and ask me again.');
+    } else {
+      lines.push(`Here is your readiness picture for ${primary.roleName}:`);
+      const dims = primary.dimensions ?? {};
+      lines.push(`- Overall: ${primary.overall ?? 'N/A'}%`);
+      if (dims.technical != null) lines.push(`- Technical: ${dims.technical}%`);
+      if (dims.professional != null) lines.push(`- Professional: ${dims.professional}%`);
+      if (dims.marketAlignment != null) lines.push(`- Market alignment: ${dims.marketAlignment}%`);
+      if (dims.evidenceConfidence != null) lines.push(`- Evidence confidence: ${dims.evidenceConfidence}%`);
+      if (primary.nextBestAction) {
+        lines.push('');
+        lines.push(`Recommended next step: ${primary.nextBestAction.action}`);
+        lines.push(primary.nextBestAction.reason ?? '');
+      }
+    }
+  } else if (intent === 'gaps') {
+    if (!primary) {
+      lines.push('I need a target role before I can identify meaningful gaps. Select one under "Target roles", then ask me again.');
+    } else {
+      const critical = primary.criticalGaps ?? [];
+      if (critical.length === 0) {
+        lines.push(`Good news: ${primary.roleName} has no critical gaps right now.`);
+      } else {
+        lines.push(`Your critical gaps for ${primary.roleName}:`);
+        for (const g of critical) lines.push(`- ${g.skillName}`);
+        lines.push('');
+        if (primary.nextBestAction) lines.push(`Work on: ${primary.nextBestAction.action}`);
+      }
+      const medium = primary.mediumGaps ?? [];
+      if (medium.length) {
+        lines.push('');
+        lines.push(`Medium gaps worth addressing: ${medium.map((g) => g.skillName).join(', ')}`);
+      }
+      const missing = primary.missingEvidence ?? [];
+      if (missing.length) {
+        lines.push('');
+        lines.push(`Skills without any recorded evidence yet: ${missing.map((m) => m.skillName).join(', ')}`);
+        lines.push('Adding evidence for these matters more than self-reporting them.');
+      }
+    }
+  } else if (intent === 'strengths') {
+    if (!primary) {
+      lines.push('Pick a target role first so I can tell you which skills you are strongest in.');
+    } else {
+      const strengths = primary.strengths ?? [];
+      lines.push(
+        strengths.length
+          ? `Your strongest skills for ${primary.roleName}: ${strengths.map((s) => s.skillName).join(', ')}`
+          : `You do not have proven strengths for ${primary.roleName} yet — no skill has enough validated evidence.`,
+      );
+      if (evidenceHighlights.length) {
+        lines.push('');
+        lines.push(`Highest-confidence evidence: ${evidenceHighlights[0].skillName} (${evidenceHighlights[0].confidenceScore}%)`);
+      }
+    }
+  } else if (intent === 'evidence') {
+    if (evidenceHighlights.length === 0) {
+      lines.push('You have no validated evidence on record yet.');
+      lines.push('Try graded assessments, real projects, deployable apps, or concrete GitHub work. Evidence, not self-claims, drives your readiness score.');
+    } else {
+      lines.push(`You have ${evidenceHighlights.length} skills with recorded evidence:`);
+      for (const e of evidenceHighlights) {
+        lines.push(`- ${e.skillName}: confidence ${e.confidenceScore}% (${e.sources?.length ?? 0} sources)`);
+      }
+      lines.push('');
+      lines.push(`Tip: ${(readinessSummary?.roles?.[0]?.missingEvidence ?? []).length ? 'the skills listed in "missing evidence" have claims but no proof, so weighted evidence first.' : 'keep grading assessments and building deployed projects to lift confidence.'}`);
+    }
+  } else if (intent === 'plan') {
+    if (!primary) {
+      lines.push('To build a plan I need a target role. Choose one under "Target roles" and I will outline steps.');
+    } else {
+      lines.push(`Here is a practical plan for ${primary.roleName}:`);
+      lines.push(`1. Close your biggest gap first: ${(primary.criticalGaps?.[0]?.skillName) ?? (primary.missingEvidence?.[0]?.skillName) ?? 'pick a skill with no evidence'}.`);
+      lines.push(`2. ${primary.nextBestAction?.action ?? 'Complete a graded assessment for your weakest skill'} — ${primary.nextBestAction?.reason ?? 'it is the highest-impact move.'}`);
+      lines.push('3. Record evidence as you go (assessments, projects, GitHub) so your score reflects reality.');
+      lines.push('4. Re-check your roadmap after each completed task and refresh your readiness estimate.');
+    }
+  } else if (intent === 'market') {
+    const data = marketInsights?.length ? marketInsights : [];
+    if (data.length === 0) {
+      lines.push('I have limited market data for your target role. You can import job postings in the Market page to unlock demand signals.');
+    } else {
+      lines.push('Here is what the market data shows:');
+      for (const m of data) {
+        lines.push(`- ${m.roleName}: demand ${m.demandLabel}`);
+        if (m.topSkills?.length) lines.push(`  top skills in demand: ${m.topSkills.join(', ')}`);
+      }
+    }
+  } else if (intent === 'assessment') {
+    lines.push('Strong evidence for a skill = scored, verifiable assessment. Good options:');
+    lines.push('- Take skill-specific assessments here (Assessments page)');
+    lines.push('- Solve and submit DSA/coding problems with clear records.');
+    lines.push('- Do a mock interview to validate professional skills.');
+  } else if (intent === 'compare') {
+    if (roles.length < 2) {
+      lines.push('You need at least two target roles to compare. Add another one under "Target roles", then ask me again.');
+    } else {
+      lines.push(`Here is how your tracked roles compare by readiness:`);
+      for (const role of roles) {
+        lines.push(`- ${role.roleName}: ${role.overall ?? 'N/A'}% overall (technical ${role.dimensions?.technical ?? 'N/A'}%, professional ${role.dimensions?.professional ?? 'N/A'}%)`);
+      }
+      const best = roles.reduce((a, b) => ((b.overall ?? 0) > (a.overall ?? 0) ? b : a), roles[0]);
+      lines.push('');
+      lines.push(`You are currently most ready for ${best.roleName}.`);
+    }
+  } else {
+    lines.push("I can help with career readiness. I don't have an answer to that specific question without my AI model connected, but I can tell you about:");
+    lines.push('- Your readiness score and what it means');
+    lines.push('- Critical skill gaps and how to close them');
+    lines.push('- What evidence to add to strengthen your profile');
+    lines.push('- Market demand signals for your target role');
+    lines.push('- A concrete next-step plan');
+    lines.push('');
+    lines.push('Try asking: "What are my biggest gaps?" or "What should I work on next?"');
+  }
+
+  if (intent !== 'greeting' && retrievedSection(contexts)) {
+    lines.push('');
+    lines.push(retrievedSection(contexts));
+  }
+
+  return lines.join('\n');
+}
+
+function retrievedSection(contexts) {
+  const docs = contexts._retrieved?.docs;
+  if (!docs?.length) return null;
+  const top = docs[0];
+  return `[Based on your records] ${top.text}`;
 }
 
 export async function listConversations(userId) {
@@ -293,6 +487,7 @@ export async function sendMessage(userId, { conversationId, content }) {
   if (retrieved) {
     contextBlock += `\n\n${retrieved}`;
   }
+  context._retrieved = retrieved ? { docs: docs.slice(0, 6) } : null;
 
   // Get conversation history (last 20 messages for context window)
   const history = await Message.find({ conversationId: conv._id })
@@ -302,7 +497,8 @@ export async function sendMessage(userId, { conversationId, content }) {
   history.reverse();
 
   const llmMessages = buildMessages(history, content, contextBlock);
-  const reply = await callLLM(llmMessages);
+  const llmReply = await callLLM(llmMessages);
+  const reply = llmReply ?? intentReply(detectIntent(content), context, content);
 
   // Save assistant message
   const assistantMsg = new Message({

@@ -18,15 +18,12 @@ import ProjectsPage from './pages/dashboard/ProjectsPage.jsx';
 import CandidatesPage from './pages/dashboard/CandidatesPage.jsx';
 import CandidateDetailPage from './pages/dashboard/CandidateDetailPage.jsx';
 import ShortlistsPage from './pages/dashboard/ShortlistsPage.jsx';
-import RecruiterApplicationsPage from './pages/dashboard/RecruiterApplicationsPage.jsx';
 import CoachPage from './pages/dashboard/CoachPage.jsx';
 import NotificationsPage from './pages/dashboard/NotificationsPage.jsx';
 import AssessmentBankPage from './pages/dashboard/AssessmentBankPage.jsx';
 import RoadmapPage from './pages/dashboard/RoadmapPage.jsx';
 import ComparePage from './pages/dashboard/ComparePage.jsx';
 import CandidateComparePage from './pages/dashboard/CandidateComparePage.jsx';
-import JobsPage from './pages/dashboard/JobsPage.jsx';
-import ApplicationsPage from './pages/dashboard/ApplicationsPage.jsx';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -151,14 +148,6 @@ export default function App() {
             }
           />
           <Route
-            path="/dashboard/recruiter/applications"
-            element={
-              <RequireAuth>
-                <RecruiterApplicationsPage />
-              </RequireAuth>
-            }
-          />
-          <Route
             path="/dashboard/coach"
             element={
               <RequireAuth>
@@ -203,22 +192,6 @@ export default function App() {
             element={
               <RequireAuth>
                 <CandidateComparePage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/dashboard/jobs"
-            element={
-              <RequireAuth>
-                <JobsPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/dashboard/applications"
-            element={
-              <RequireAuth>
-                <ApplicationsPage />
               </RequireAuth>
             }
           />

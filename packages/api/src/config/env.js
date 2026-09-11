@@ -29,7 +29,7 @@ const env = {
   jwtExpiresIn: requireEnv('JWT_EXPIRES_IN', '7d'),
 
   rateLimitWindowMs: Number(requireEnv('RATE_LIMIT_WINDOW_MS', '900000')),
-  rateLimitMax: Number(requireEnv('RATE_LIMIT_MAX', '100')),
+  rateLimitMax: Number(requireEnv('RATE_LIMIT_MAX', '1000')),
 
   maxUploadSizeMb: Number(requireEnv('MAX_UPLOAD_SIZE_MB', '10')),
   allowedUploadMimeTypes: requireEnv(
