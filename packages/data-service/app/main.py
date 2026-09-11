@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api.execute import router as execute_router
+from .api.github import router as github_router
 from .api.health import router as health_router
 from .api.market import router as market_router
 from .api.resume import router as resume_router
@@ -38,3 +39,4 @@ app.include_router(health_router, prefix="/api")
 app.include_router(execute_router, prefix="/api")
 app.include_router(market_router, prefix="/api")
 app.include_router(resume_router, prefix="/api")
+app.include_router(github_router, prefix="/api")

@@ -38,6 +38,10 @@ const env = {
   ).split(','),
 
   logLevel: requireEnv('LOG_LEVEL', 'info'),
+
+  llmApiUrl: requireEnv('LLM_API_URL', ''),
+  llmApiKey: requireEnv('LLM_API_KEY', ''),
+  llmModel: requireEnv('LLM_MODEL', 'gpt-4o-mini'),
 };
 
 export default env;

@@ -10,16 +10,25 @@ const navItems = [
   { to: '/dashboard/assessments', label: 'Assessments', end: false },
   { to: '/dashboard/market', label: 'Market', end: false },
   { to: '/dashboard/resume', label: 'Resume', end: false },
+  { to: '/dashboard/github', label: 'GitHub', end: false },
+  { to: '/dashboard/projects', label: 'Projects', end: false },
+  { to: '/dashboard/coach', label: 'Coach', end: false },
 ];
 
 const reviewerNavItems = [
   { to: '/dashboard/reviews', label: 'Reviews', end: false },
 ];
 
+const recruiterNavItems = [
+  { to: '/dashboard/candidates', label: 'Candidates', end: false },
+  { to: '/dashboard/shortlists', label: 'Shortlists', end: false },
+];
+
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const isReviewer = user?.role === 'admin' || user?.role === 'mentor';
+  const isRecruiter = user?.role === 'admin' || user?.role === 'recruiter';
 
   function handleLogout() {
     logout();
@@ -54,6 +63,24 @@ export default function Layout({ children }) {
           ))}
           {isReviewer &&
             reviewerNavItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) =>
+                  cn(
+                    'block rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-indigo-50 text-indigo-700'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
+                  )
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          {isRecruiter &&
+            recruiterNavItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}

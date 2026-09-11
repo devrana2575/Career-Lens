@@ -10,6 +10,12 @@ import AssessmentsPage from './pages/dashboard/AssessmentsPage.jsx';
 import ReviewsPage from './pages/dashboard/ReviewsPage.jsx';
 import MarketPage from './pages/dashboard/MarketPage.jsx';
 import ResumePage from './pages/dashboard/ResumePage.jsx';
+import GitHubPage from './pages/dashboard/GitHubPage.jsx';
+import ProjectsPage from './pages/dashboard/ProjectsPage.jsx';
+import CandidatesPage from './pages/dashboard/CandidatesPage.jsx';
+import CandidateDetailPage from './pages/dashboard/CandidateDetailPage.jsx';
+import ShortlistsPage from './pages/dashboard/ShortlistsPage.jsx';
+import CoachPage from './pages/dashboard/CoachPage.jsx';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -87,6 +93,54 @@ export default function App() {
             element={
               <RequireAuth>
                 <ResumePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/github"
+            element={
+              <RequireAuth>
+                <GitHubPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/projects"
+            element={
+              <RequireAuth>
+                <ProjectsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/candidates"
+            element={
+              <RequireAuth>
+                <CandidatesPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/candidates/:id"
+            element={
+              <RequireAuth>
+                <CandidateDetailPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/shortlists"
+            element={
+              <RequireAuth>
+                <ShortlistsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/coach"
+            element={
+              <RequireAuth>
+                <CoachPage />
               </RequireAuth>
             }
           />

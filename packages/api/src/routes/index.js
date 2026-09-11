@@ -9,6 +9,10 @@ import readinessRoutes from './readiness.routes.js';
 import assessmentRoutes from './assessment.routes.js';
 import marketRoutes from './market.routes.js';
 import resumeRoutes from './resume.routes.js';
+import githubRoutes from './github.routes.js';
+import projectRoutes from './project.routes.js';
+import recruiterRoutes from './recruiter.routes.js';
+import coachRoutes from './coach.routes.js';
 
 const router = Router();
 
@@ -22,5 +26,9 @@ router.use('/readiness', readinessRoutes);
 router.use('/assessments', assessmentRoutes);
 router.use('/market', marketRoutes);
 router.use('/resume', resumeRoutes);
+router.use('/github', githubRoutes);
+router.use('/projects', projectRoutes);
+router.use('/recruiter', recruiterRoutes);
+router.use('/coach', coachRoutes);
 
 export default router;
