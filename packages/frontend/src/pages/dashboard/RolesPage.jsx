@@ -10,7 +10,6 @@ export default function RolesPage() {
   const [data, setData] = useState(null);
   const [selected, setSelected] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -24,7 +23,6 @@ export default function RolesPage() {
   }, []);
 
   function toggle(id) {
-    setSaved(false);
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
@@ -32,11 +30,10 @@ export default function RolesPage() {
 
   async function handleSave() {
     setSaving(true);
-    setSaved(false);
     setError('');
     try {
       await apiFetch('/profiles/me', { method: 'PATCH', body: { targetRoleIds: selected } });
-      setSaved(true);
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -126,7 +123,6 @@ export default function RolesPage() {
           <Button onClick={handleSave} disabled={saving}>
             {saving ? 'Saving…' : 'Save selection'}
           </Button>
-          {saved && <span className="text-sm text-green-600">Saved successfully.</span>}
           {error && <span className="text-sm text-red-600">{error}</span>}
         </div>
 

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout.jsx';
 import { apiFetch } from '../../lib/api.js';
 import { Button } from '../../components/ui/button.jsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card.jsx';
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
   const [form, setForm] = useState(null);
-  const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -24,10 +25,9 @@ export default function ProfilePage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    setSaved(false);
     try {
       await apiFetch('/profiles/me', { method: 'PATCH', body: form });
-      setSaved(true);
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message);
     }
@@ -55,8 +55,8 @@ export default function ProfilePage() {
         <Card>
           <CardHeader>
             <CardTitle>Professional details</CardTitle>
-            <CardDescription className={saved ? 'text-green-600' : ''}>
-              {saved ? 'Saved successfully.' : 'Keep this up to date.'}
+            <CardDescription>
+              Saves and returns you to the dashboard.
             </CardDescription>
           </CardHeader>
           <CardContent>
