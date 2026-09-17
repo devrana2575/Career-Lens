@@ -292,7 +292,7 @@ function detectIntent(query) {
   return bestScore > 0 ? best : 'general';
 }
 
-function intentReply(intent, contexts, userMessage) {
+function intentReply(intent, contexts) {
   const { readinessSummary, evidenceHighlights, marketInsights, targetRoleIds } = contexts;
   const roles = readinessSummary?.roles ?? [];
   const primary = roles[0];
@@ -498,7 +498,7 @@ export async function sendMessage(userId, { conversationId, content }) {
 
   const llmMessages = buildMessages(history, content, contextBlock);
   const llmReply = await callLLM(llmMessages);
-  const reply = llmReply ?? intentReply(detectIntent(content), context, content);
+  const reply = llmReply ?? intentReply(detectIntent(content), context);
 
   // Save assistant message
   const assistantMsg = new Message({
