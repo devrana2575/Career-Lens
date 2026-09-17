@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout.jsx';
 import { apiFetch } from '../../lib/api.js';
 import { Button } from '../../components/ui/button.jsx';
@@ -13,6 +13,7 @@ const STRENGTH_CLASS = {
 };
 
 export default function ResumePage() {
+  const navigate = useNavigate();
   const [text, setText] = useState('');
   const [fileName, setFileName] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
@@ -122,6 +123,15 @@ export default function ResumePage() {
               <Button type="button" onClick={handleAnalyze} disabled={!ready}>
                 {analyzing ? 'Analyzing…' : 'Analyze resume'}
               </Button>
+              {text.trim().length > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate('/dashboard/jobs', { state: { text } })}
+                >
+                  Match this resume to jobs
+                </Button>
+              )}
               <Link to="/dashboard/evidence" className="text-sm text-indigo-600 hover:underline">
                 View evidence →
               </Link>

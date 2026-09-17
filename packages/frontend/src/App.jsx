@@ -13,6 +13,7 @@ import AssessmentsPage from './pages/dashboard/AssessmentsPage.jsx';
 import ReviewsPage from './pages/dashboard/ReviewsPage.jsx';
 import MarketPage from './pages/dashboard/MarketPage.jsx';
 import ResumePage from './pages/dashboard/ResumePage.jsx';
+import JobMatchPage from './pages/dashboard/JobMatchPage.jsx';
 import GitHubPage from './pages/dashboard/GitHubPage.jsx';
 import ProjectsPage from './pages/dashboard/ProjectsPage.jsx';
 import CandidatesPage from './pages/dashboard/CandidatesPage.jsx';
@@ -104,6 +105,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <ResumePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/dashboard/jobs"
+            element={
+              <RequireAuth>
+                <JobMatchPage />
               </RequireAuth>
             }
           />

@@ -11,11 +11,10 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from pymongo import MongoClient
 
-from ..config import Settings, get_settings
-from ..market.extractor import SkillTerm, build_skill_terms
+from ..config import get_settings
 from ..resume.analyzer import analyze_resume
+from ..resume.ontology import load_vocab
 from .security import require_api_key
 
 MAX_TEXT_CHARS = 50_000
@@ -26,27 +25,6 @@ router = APIRouter()
 class ResumeAnalysisRequest(BaseModel):
     text: str
     fileName: Optional[str] = None
-
-
-def load_vocab(settings: Settings) -> tuple[list[SkillTerm], dict[str, dict]]:
-    """Loads the ontology vocabulary and skill metadata from MongoDB."""
-    client = MongoClient(settings.mongodb_uri)
-    try:
-        db = client[settings.market_db_name or "career_intelligence"]
-        skills = list(db["skills"].find({}))
-        aliases = list(db["skillAliases"].find({}))
-    finally:
-        client.close()
-
-    info: dict[str, dict] = {}
-    for skill in skills:
-        skill_id = str(skill.get("_id") or skill.get("id") or "")
-        if skill_id:
-            info[skill_id] = {
-                "name": skill.get("name") or "",
-                "category": skill.get("category") or None,
-            }
-    return build_skill_terms(skills, aliases), info
 
 
 @router.post("/resume/analyze")

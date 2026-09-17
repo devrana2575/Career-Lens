@@ -13,6 +13,7 @@ const navItems = [
   { to: '/dashboard/assessments', label: 'Assessments', end: false },
   { to: '/dashboard/market', label: 'Market', end: false },
   { to: '/dashboard/resume', label: 'Resume', end: false },
+  { to: '/dashboard/jobs', label: 'Job matches', end: false },
   { to: '/dashboard/github', label: 'GitHub', end: false },
   { to: '/dashboard/projects', label: 'Projects', end: false },
   { to: '/dashboard/coach', label: 'Coach', end: false },

@@ -10,5 +10,7 @@ export * from './domain/project.js';
 export * from './domain/recruiter.js';
 export * from './domain/coach.js';
 export * from './domain/notification.js';
+export * from './domain/matching.js';
 export * from './api/auth.js';
 export * from './api/profile.js';
+export * from './api/matching.js';

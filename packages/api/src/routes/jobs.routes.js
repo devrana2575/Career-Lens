@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import crypto from 'node:crypto';
 import { z } from 'zod';
+import { MatchJobsInputSchema } from '@career/shared';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { Job } from '../models/job.model.js';
 import { AppError } from '../utils/errors.js';
+import { matchJobs } from '../services/matching.service.js';
 
 const router = Router();
 
@@ -34,6 +36,26 @@ router.get('/jobs/mine', requireRole('recruiter', 'admin'), async (req, res, nex
   try {
     const jobs = await Job.find({ recruiterId: req.user.id }).sort({ collectedDate: -1 }).lean();
     res.json(jobs);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * Scores active postings against the candidate's resume text.
+ * Delegates to the data service; validated here with the shared contract.
+ */
+router.post('/jobs/match', async (req, res, next) => {
+  try {
+    const parsed = MatchJobsInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      const details = parsed.error.issues.map((issue) => ({
+        field: issue.path.join('.'),
+        message: issue.message,
+      }));
+      throw new AppError('Validation failed', 422, details);
+    }
+    res.json(await matchJobs(parsed.data));
   } catch (err) {
     next(err);
   }

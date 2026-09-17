@@ -1,0 +1,1 @@
+export { MatchJobsInputSchema, JobMatchResponseSchema } from '../domain/matching.js';
